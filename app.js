@@ -5,7 +5,7 @@ fs = require('fs');
 server.set('port', process.env.PORT || 3000);
 
 server.get('/', (request,response) => {
- response.send('Welcome to eCom!');
+ response.send('Welcome to Daintree!');
 });
 
 server.listen(3000,()=>{
