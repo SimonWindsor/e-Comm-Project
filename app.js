@@ -1,13 +1,16 @@
 const express = require('express');
-app = express();
-fs = require('fs');
+const app = express();
+fs = require('fs'); //not sure I need this yet
 	  
-server.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3000);
 
-server.get('/', (request,response) => {
+app.get('/', (request, response) => {
  response.send('Welcome to Daintree!');
 });
 
-server.listen(3000,()=>{
+const apiRouter = require('./routes/api');
+app.use('/api', apiRouter);
+
+app.listen(3000,()=>{
  console.log('Express server started at port 3000');
 });
