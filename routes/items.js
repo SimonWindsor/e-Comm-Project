@@ -1,4 +1,5 @@
 const itemsRouter = require('express').Router();
+import * as db from '../db/index.js';
 
 // Show item by id
 itemsRouter.get('/:id', (req, res, next) => {

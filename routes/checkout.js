@@ -1,4 +1,5 @@
 const checkoutRouter = require('express').Router();
+import * as db from '../db/index.js';
 
 checkoutRouter.get('/', (req, res, next) => {
 

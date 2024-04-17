@@ -1,0 +1,15 @@
+{
+  "name": "ecom_project",
+  "version": "1.0.0",
+  "description": "an e-commerce application project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Simon Windsor",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
+}

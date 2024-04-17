@@ -1,4 +1,5 @@
 const purchasesRouter = require('express').Router();
+import * as db from '../db/index.js';
 
 // Shows purchase history
 purchasesRouter.get('/', (req, res, next) => {

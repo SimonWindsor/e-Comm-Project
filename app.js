@@ -8,6 +8,7 @@ app.get('/', (request, response) => {
  response.send('Welcome to Daintree!');
 });
 
+// Add and use the api and routes
 const apiRouter = require('./routes/api');
 app.use('/api', apiRouter);
 

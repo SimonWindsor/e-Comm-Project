@@ -1,4 +1,5 @@
 const usersRouter = require('express').Router();
+import * as db from '../db/index.js';
 
 // Shows user by id
 usersRouter.get('/:id', (req, res, next) => {
@@ -11,7 +12,7 @@ usersRouter.post('/register', (req, res, next) => {
 });
 
 // Unregistering a new user
-usersRouter.delete('/unregister', (req, res, next) => {
+usersRouter.delete('/unregister/:id', (req, res, next) => {
 
 });
 
