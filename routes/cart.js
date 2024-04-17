@@ -1,5 +1,5 @@
 const cartRouter = require('express').Router();
-import * as db from '../db/index.js';
+//import * as db from '../db/index.js';
 
 // Get current cart contents
 cartRouter.get('/', (req, res, next) => {

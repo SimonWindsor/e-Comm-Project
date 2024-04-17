@@ -10,13 +10,15 @@ const pool = new Pool({
 
 pool.connect();
  
-export const query = (text, params, callback) => {
+const query = (text, params, callback) => {
   return pool.query(text, params, callback)
 };
 
-export const getClient = () => {
+const getClient = () => {
   return pool.connect()
 };
+
+module.exports = {query, getClient};
 
 // Below is just an example of how to do a query and log it to console
 

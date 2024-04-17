@@ -1,5 +1,5 @@
 const usersRouter = require('express').Router();
-import * as db from '../db/index.js';
+//import * as db from '../db/index.js';
 
 // Shows user by id
 usersRouter.get('/:id', (req, res, next) => {
