@@ -14,8 +14,8 @@ pool.connect();
 const query = (text, params, callback) => {
   try {
     return pool.query(text, params, callback);
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.error(error);
   }
 };
 
@@ -107,7 +107,7 @@ const createUser = async (userBodyObject) => {
     console.error(error);
     throw new Error('Error creating user');
   }
-}
+};
 
 // Finds address id or false value. Use async/await upson calling
 const findAddressId = async (number_street, locality, state_province, country, zipcode) => {
@@ -133,7 +133,7 @@ const findAddressId = async (number_street, locality, state_province, country, z
     console.error(error);
     throw new Error('Error finding address');
   }
-}
+};
 
 // Creates a new address and returns id. Use async/await upon calling
 const createAddress = async (number_street, locality, state_province, country, zipcode) => {
@@ -141,7 +141,7 @@ const createAddress = async (number_street, locality, state_province, country, z
     // Create address id - to be updated later
     const id = Math.floor(Math.random * 2000000000);
     const insertParams = [id, number_street, locality, state_province, country, zipcode];
-    const newAddress = await query(
+    await query(
       'INSERT INTO addresses (id, number_street, locality, state_province, country, zipcode) VALUES ($1, $2, $3, $4, $5, $6)',
       insertParams
     )
@@ -150,7 +150,7 @@ const createAddress = async (number_street, locality, state_province, country, z
     console.error(error);
     throw new Error('Error creating address');
   }
-}
+};
 
 // Returns either an item object or a false value. Use async/await upon calling
 const getItemById = async (id) => {
@@ -194,16 +194,43 @@ const getItemsFromSearch = async (searchTerms) => {
   }
 };
 
-const getCart = (userId) => {
+// Returns cart object or a false value. Use async/await upon calling
+const getCart = async (userId) => {
+  try {
+    const result = await query(`SELECT * FROM carts WHERE user_id = ${userId}`);
 
-}
-
-const addItemToCart = (itemId, userId) => {
-
+    if (result.rows.length === 0) {
+      return false;
+    } else{
+      return result.rows[0];
+    }
+  } catch (error) {
+    throw new Error('Error retrieving cart');
+  }
 };
 
-const removeItemFromCart = (itemId, userId) => {
+const addItemToCart = async (userId, itemString) => {
+  try {
+    await query(`UPDATE carts SET items = array_append(items, ${itemString}) WHERE user_id = ${userId}`);
+  } catch (error) {
+    throw new Error('Error adding items to cart');
+  }
+};
 
+const removeItemFromCart = async (userId, itemString) => {
+  try {
+    await query(`UPDATE carts SET items = array_remove(items, ${itemString}) WHERE user_id = ${userId}`);
+  } catch (error) {
+    throw new Error('Error adding items to cart');
+  }
+};
+
+const updateCartItem = async (userId, oldValue, newValue) => {
+  try {
+    await query(`UPDATE carts SET items = array_replace(items, ${oldValue}, ${newValue}) WHERE user_id = ${userId}`);
+  } catch (error) {
+    throw new Error('Error adding items to cart');
+  }
 };
 
 module.exports = {
@@ -216,7 +243,8 @@ module.exports = {
   getItemsFromSearch,
   getCart,
   addItemToCart,
-  removeItemFromCart
+  removeItemFromCart,
+  updateCartItem
 };
 
 // Below is just an example of how to do a query and log it to console

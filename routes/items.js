@@ -37,9 +37,4 @@ itemsRouter.get('/search/:searchTerms', async (req, res, next) => {
   }
 });
 
-// Add item to cart
-itemsRouter.post('/:id', (req, res, next) => {
-
-});
-
 module.exports = itemsRouter;

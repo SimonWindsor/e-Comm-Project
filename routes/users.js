@@ -12,14 +12,4 @@ usersRouter.get('/:username', async (req, res, next) => {
   }
 });
 
-// Registering a new user
-usersRouter.post('/register', (req, res, next) => {
-
-});
-
-// Unregistering a new user
-usersRouter.delete('/unregister/:id', (req, res, next) => {
-
-});
-
 module.exports = usersRouter;

@@ -80,7 +80,12 @@ app.get('/', (req, res) => {
 });
 
 app.get('/profile', (req, res) => {
-  res.render('profile', { user: req.user }); // fix this when working on front end
+  if (!req.user) {
+    // If user is not authenticated, redirect to login page
+    return res.redirect('/login');
+  } else {
+    res.send(req.user); 
+  }
 });
 
 app.get("/logout", (req, res) => {
