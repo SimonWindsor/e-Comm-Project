@@ -1,9 +1,9 @@
 const cartRouter = require('express').Router();
-//import * as db from '../db/index.js';
+const {getCart, addItemToCart, removeItemFromCart} = require('../db/index');
 
 // Get current cart contents
-cartRouter.get('/:cartId', (req, res, next) => {
-
+cartRouter.get('/:userId', (req, res, next) => {
+  const cart = getCart()
 });
 
 // Remove item from cart

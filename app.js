@@ -7,7 +7,7 @@ const store = new session.MemoryStore();
 const apiRouter = require('./routes/api');
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const {query, getUserById, getUserByUsername} = require('./db/index');
+const {query, getUserById, getUserByUsername, createUser} = require('./db/index');
 	  
 app.set('port', process.env.PORT || 3000);
 
@@ -44,41 +44,77 @@ passport.serializeUser((user, done) => {
 
 // Deserializing user
 passport.deserializeUser(async (id, done) => {
-  const user = await getUserById(id);
-  done(null, user)
+  try {
+    const user = await getUserById(id);
+    done(null, user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // Adding passport's local strategy
 passport.use(new LocalStrategy(
   async function (username, password, done) {
-    const user = await getUserByUsername(username);
+    try {
+      const user = await getUserByUsername(username);
 
-    if (!user) {
-      done (null, false);
+      if (!user) {
+        done (null, false);
+      }
+
+      if(user.password != password) {
+        done(null, false);
+      }
+
+      done(null, user);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
     }
-
-    if(user.password != password) {
-      done(null, false);
-    }
-
-    done(null, user);
   }
-))
+));
 
 app.get('/', (req, res) => {
   res.send('Welcome to Daintree!');
 });
 
-app.get("/profile", (req, res) => {
-  res.render("profile", { user: req.user });
+app.get('/profile', (req, res) => {
+  res.render('profile', { user: req.user }); // fix this when working on front end
 });
 
-app.post("/login",
-  passport.authenticate("local", { failureRedirect : "/login"}),
+app.get("/logout", (req, res) => {
+  req.logout();
+  res.redirect("/login");
+});
+
+app.post('/login',
+  passport.authenticate('local', { failureRedirect : '/login' }),
   (req, res) => {
-    res.redirect("profile");
+    res.redirect('profile'); 
   }
 );
+
+app.post("/register", async (req, res) => {
+  try {
+    // Use whole req.body object as parameter, createUser() will destructure
+    const newUser = await createUser(req.body);
+
+    if (newUser) {
+      res.status(201).json({
+        msg: "New user created",
+        newUser
+      });
+    } else {
+      res.status(500).json({
+        msg: "New user was not created"
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 app.listen(3000,()=>{
  console.log('Express server started at port 3000');

@@ -24,10 +24,9 @@ const getClient = () => {
 };
 
 // Returns either a user object or a false value. Use async/await upon calling
- 
-const getUserById = (id) => {
+const getUserById = async (id) => {
   try { 
-    const result = query(`SELECT * FROM users WHERE id = ${id}`);
+    const result = await query(`SELECT * FROM users WHERE id = ${id}`);
 
     if (result.rows.length === 0) {
       return false;
@@ -43,7 +42,7 @@ const getUserById = (id) => {
 // Returns either a user object or a false value. Use async/await upon calling
 const getUserByUsername = async (username) => {
   try {
-    const result = await query('SELECT * FROM users WHERE LOWER(username) = $1', [username]);
+    const result = await query('SELECT * FROM users WHERE LOWER(username) = $1', [username].toLowerCase());
     console.log(result.rows);
 
     if (result.rows.length === 0) {
@@ -56,6 +55,102 @@ const getUserByUsername = async (username) => {
     throw new Error('Error retrieving user by username');
   }
 };
+
+// Returns new user object ot a false value. Use async/await upson calling
+const createUser = async (userBodyObject) => {
+  try {
+    // Destructure user object
+    const {
+      username,
+      email,
+      first_name, 
+      last_name, 
+      phone_number, 
+      address, // this will be an object
+      password
+    } = userBodyObject;
+    // Check if user already exists
+    const user = await getUserByUsername(username);
+
+    if (user) {
+      throw new Error('User already exists');
+    } else {
+      // Create user id - to be updated later
+      const id = Math.floor(Math.random * 2000000000);
+      // Obtain address id and create if it doesn't exist
+      let address_id = await findAddressId(
+        address.number_street,
+        address.locality,
+        address.state_province,
+        address.country,
+        address.zipcode
+      );
+
+      if(!address_id) {
+        address_id = await createAddress(
+          address.number_street,
+          address.locality,
+          address.state_province,
+          address.country,
+          address.zipcode
+        );
+      }
+
+      const insertParams = [username, email, first_name, last_name, phone_number, address_id, id, password];
+      const newUser = await query(
+        'INSERT INTO users (username, email, first_name, last_name, phone_number, address_id, id, password) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        insertParams
+      );
+      return newUser;
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error creating user');
+  }
+}
+
+// Finds address id or false value. Use async/await upson calling
+const findAddressId = async (number_street, locality, state_province, country, zipcode) => {
+  try {
+    const insertParams = [
+      number_street.toLowerCase(), 
+      locality.toLowerCase(), 
+      state_province.toLowerCase(), 
+      country.toLowerCase(), 
+      zipcode.toLowerCase()
+    ];
+    const result = await query(
+      'SELECT id FROM addresses WHERE LOWER(number_street) = $1 AND LOWER(locality) = $2, AND LOWER(state_province) = $3 AND LOWER(country) = $4 AND LOWER(zipcode) = $5',
+      insertParams
+    );
+
+    if (result.rows.length > 0) {
+      return result.rows[0].id;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error finding address');
+  }
+}
+
+// Creates a new address and returns id. Use async/await upon calling
+const createAddress = async (number_street, locality, state_province, country, zipcode) => {
+  try {
+    // Create address id - to be updated later
+    const id = Math.floor(Math.random * 2000000000);
+    const insertParams = [id, number_street, locality, state_province, country, zipcode];
+    const newAddress = await query(
+      'INSERT INTO addresses (id, number_street, locality, state_province, country, zipcode) VALUES ($1, $2, $3, $4, $5, $6)',
+      insertParams
+    )
+
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error creating address');
+  }
+}
 
 // Returns either an item object or a false value. Use async/await upon calling
 const getItemById = async (id) => {
@@ -99,11 +194,15 @@ const getItemsFromSearch = async (searchTerms) => {
   }
 };
 
-const addItemToCart = (itemId) => {
+const getCart = (userId) => {
+
+}
+
+const addItemToCart = (itemId, userId) => {
 
 };
 
-const removeItemFromCart = (itemId) => {
+const removeItemFromCart = (itemId, userId) => {
 
 };
 
@@ -112,8 +211,12 @@ module.exports = {
   getClient,
   getUserById,
   getUserByUsername,
+  createUser,
   getItemById,
-  getItemsFromSearch
+  getItemsFromSearch,
+  getCart,
+  addItemToCart,
+  removeItemFromCart
 };
 
 // Below is just an example of how to do a query and log it to console
