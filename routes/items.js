@@ -3,8 +3,13 @@ const {query, getItemById, getItemsFromSearch} = require('../db/index');
 
 // Get all items
 itemsRouter.get('/', async (req, res, next) => {
-  const result = await query('SELECT * FROM items');
-  res.send(result.rows);
+  try {
+    const result = await query('SELECT * FROM items');
+    res.send(result.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // Show item by id
