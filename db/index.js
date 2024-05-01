@@ -96,7 +96,9 @@ const createUser = async (userBodyObject) => {
         );
       }
 
-      const insertParams = [username, email, first_name, last_name, phone_number, address_id, id, password];
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const insertParams = [username, email, first_name, last_name, phone_number, address_id, id, hashedPassword];
       const newUser = await query(
         'INSERT INTO users (username, email, first_name, last_name, phone_number, address_id, id, password) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
         insertParams

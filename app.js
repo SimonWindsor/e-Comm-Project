@@ -7,6 +7,7 @@ const store = new session.MemoryStore();
 const apiRouter = require('./routes/api');
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+const bcrypt = require('bcrypt');
 const {query, getUserById, getUserByUsername, createUser} = require('./db/index');
 	  
 app.set('port', process.env.PORT || 3000);
@@ -60,17 +61,20 @@ passport.use(new LocalStrategy(
       const user = await getUserByUsername(username);
 
       if (!user) {
-        done (null, false);
+        return done(null, false);
       }
 
-      if(user.password != password) {
-        done(null, false);
+      const passwordMatch = await bcrypt.compare(password, user.password);
+
+      if (!passwordMatch) {
+        return done(null, false);
       }
 
-      done(null, user);
+      return done(null, user);
     } catch (error) {
       console.error(error);
       res.status(500).send('Internal Server Error');
+      return done(error);
     }
   }
 ));
