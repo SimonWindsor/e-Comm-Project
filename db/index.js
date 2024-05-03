@@ -331,14 +331,3 @@ module.exports = {
   getPurchaseById,
   createPurchase
 };
-
-// Below is just an example of how to do a query and log it to console
-// I've tried using try/catch in query() in case of any errors
-
-// pool.query('SELECT * FROM items;', (err, res) => {
-//   if(!err) {
-//     console.log(res.rows);
-//   } else {
-//     console.log(err.message);
-//   }
-// })

@@ -1,5 +1,5 @@
 const checkoutRouter = require('express').Router();
-const { getCart, createPurchase, getPurchaseById } = require('../db/index.js')
+const { getCart, createPurchase, getPurchaseById, clearCart } = require('../db/index.js')
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -29,6 +29,7 @@ checkoutRouter.post('/', isAuthenticated, async (req, res, next) => {
   try {
     const newPurchase = await createPurchase(req.body);
     if (newPurchase) {
+      await clearCart(newPurchase.id);
       res.redirect(`/complete?purchaseId=${newPurchase.id}`);
     } else {
       res.status(500).json({
@@ -54,7 +55,7 @@ checkoutRouter.put('/', async (req, res, next) => {
 checkoutRouter.get('/complete', async (req, res) => {
   try {
     const purchase = await getPurchaseById(req.query.purchaseId);
-    res.render('Your order is now complete', purchase);
+    res.send('Your order is now complete', purchase);
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
