@@ -8,7 +8,7 @@ const apiRouter = require('./routes/api');
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcrypt');
-const {query, getUserById, getUserByUsername, createUser} = require('./db/index');
+const {getUserById, getUserByUsername, createUser} = require('./db/index.js');
 	  
 app.set('port', process.env.PORT || 3000);
 
@@ -110,6 +110,8 @@ app.post("/register", async (req, res) => {
     const newUser = await createUser(req.body);
 
     if (newUser) {
+      req.session.userId = newUser.id;
+
       res.status(201).json({
         msg: "New user created",
         newUser

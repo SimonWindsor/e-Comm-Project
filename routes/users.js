@@ -1,7 +1,7 @@
 const usersRouter = require('express').Router();
-const {query, getUserById, getUserByUsername} = require('../db/index');
+const {getUserByUsername} = require('../db/index.js');
 
-// Shows user by username
+// Shows user by username. This is mainly for seeing user profiles
 usersRouter.get('/:username', async (req, res, next) => {
   // Quotes are needed around the template variable as the SQL is searching for text
   const user = await getUserByUsername(req.params.username);

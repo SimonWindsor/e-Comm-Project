@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const bcrypt = require('bcrypt');
  
 const pool = new Pool({
   user: 'postgres',
@@ -63,9 +64,9 @@ const createUser = async (userBodyObject) => {
     const {
       username,
       email,
-      first_name, 
-      last_name, 
-      phone_number, 
+      firstName, 
+      lastName, 
+      phoneNumber, 
       address, // this will be an object
       password
     } = userBodyObject;
@@ -78,32 +79,21 @@ const createUser = async (userBodyObject) => {
       // Create user id - to be updated later
       const id = Math.floor(Math.random * 2000000000);
       // Obtain address id and create if it doesn't exist
-      let address_id = await findAddressId(
-        address.number_street,
-        address.locality,
-        address.state_province,
-        address.country,
-        address.zipcode
-      );
+      let addressId = await findAddressId(address); // address is an object
 
-      if(!address_id) {
-        address_id = await createAddress(
-          address.number_street,
-          address.locality,
-          address.state_province,
-          address.country,
-          address.zipcode
-        );
+      if(!addressId) {
+        address_id = await createAddress(address); // address is an object
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const insertParams = [username, email, first_name, last_name, phone_number, address_id, id, hashedPassword];
+      const insertParams = [username, email, firstName, lastName, phoneNumber, addressId, id, hashedPassword];
       const newUser = await query(
-        'INSERT INTO users (username, email, first_name, last_name, phone_number, address_id, id, password) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        'INSERT INTO users (username, email, first_name, last_name, phone_number, address_id, id, password) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
         insertParams
       );
-      return newUser;
+      const userReturn = newUser.rows[0];
+      return userReturn;
     }
   } catch (error) {
     console.error(error);
@@ -111,15 +101,15 @@ const createUser = async (userBodyObject) => {
   }
 };
 
-// Finds address id or false value. Use async/await upson calling
-const findAddressId = async (number_street, locality, state_province, country, zipcode) => {
+// Finds address id or false value. Accepts an object as parameter. Use async/await upson calling
+const findAddressId = async (address) => {
   try {
     const insertParams = [
-      number_street.toLowerCase(), 
-      locality.toLowerCase(), 
-      state_province.toLowerCase(), 
-      country.toLowerCase(), 
-      zipcode.toLowerCase()
+      address.numberStreet.toLowerCase(), 
+      address.locality.toLowerCase(), 
+      address.stateProvince.toLowerCase(), 
+      address.country.toLowerCase(), 
+      address.zipcode.toLowerCase()
     ];
     const result = await query(
       'SELECT id FROM addresses WHERE LOWER(number_street) = $1 AND LOWER(locality) = $2, AND LOWER(state_province) = $3 AND LOWER(country) = $4 AND LOWER(zipcode) = $5',
@@ -137,17 +127,24 @@ const findAddressId = async (number_street, locality, state_province, country, z
   }
 };
 
-// Creates a new address and returns id. Use async/await upon calling
-const createAddress = async (number_street, locality, state_province, country, zipcode) => {
+// Creates a new address and returns id. Accepts an object as parameter. Use async/await upon calling
+const createAddress = async (address) => {
   try {
     // Create address id - to be updated later
     const id = Math.floor(Math.random * 2000000000);
-    const insertParams = [id, number_street, locality, state_province, country, zipcode];
+    const insertParams = [
+      id, 
+      address.numberStreet, 
+      address.locality, 
+      address.stateProvince, 
+      address.country, 
+      address.zipcode
+    ];
     await query(
       'INSERT INTO addresses (id, number_street, locality, state_province, country, zipcode) VALUES ($1, $2, $3, $4, $5, $6)',
       insertParams
     )
-
+    return id;
   } catch (error) {
     console.error(error);
     throw new Error('Error creating address');
@@ -165,7 +162,6 @@ const getItemById = async (id) => {
       return result.rows[0];
     }
   } catch (error) {
-    // Handle any errors that occur during the database query
     console.error(error);
     throw new Error('Error retrieving item by ID');
   }
@@ -192,7 +188,24 @@ const getItemsFromSearch = async (searchTerms) => {
       return flatResults;
     }
   } catch (error) {
+    console.error(error);
     throw new Error('Error retrieving search');
+  }
+};
+
+// Returns either an review object or a false value. Use async/await upon calling
+const getReview = async (reviewId) => {
+  try {
+    const result = await query(`SELECT * FROM reviews WHERE id = ${reviewId}`);
+
+    if (result.rows.length === 0) {
+      return false;
+    } else {
+      return result.rows[0];
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error retrieving item by ID');
   }
 };
 
@@ -203,10 +216,11 @@ const getCart = async (userId) => {
 
     if (result.rows.length === 0) {
       return false;
-    } else{
+    } else {
       return result.rows[0];
     }
   } catch (error) {
+    console.error(error);
     throw new Error('Error retrieving cart');
   }
 };
@@ -215,6 +229,7 @@ const addItemToCart = async (userId, itemString) => {
   try {
     await query(`UPDATE carts SET items = array_append(items, ${itemString}) WHERE user_id = ${userId}`);
   } catch (error) {
+    console.error(error);
     throw new Error('Error adding items to cart');
   }
 };
@@ -223,6 +238,7 @@ const removeItemFromCart = async (userId, itemString) => {
   try {
     await query(`UPDATE carts SET items = array_remove(items, ${itemString}) WHERE user_id = ${userId}`);
   } catch (error) {
+    console.error(error);
     throw new Error('Error adding items to cart');
   }
 };
@@ -231,7 +247,70 @@ const updateCartItem = async (userId, oldValue, newValue) => {
   try {
     await query(`UPDATE carts SET items = array_replace(items, ${oldValue}, ${newValue}) WHERE user_id = ${userId}`);
   } catch (error) {
+    console.error(error);
     throw new Error('Error adding items to cart');
+  }
+};
+
+const clearCart = async(userId)  => {
+  try {
+    await query(`DELETE FROM carts WHERE user_id = ${userId}`);
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error adding items to cart');
+  }
+};
+
+const getPurchaseById = async (purchaseId) => {
+  try {
+    const result = await query(`SELECT * FROM purchases WHERE id = ${purchaseId}`);
+
+    if (result.rows.length === 0) {
+      return false;
+    } else {
+      console.error(error);
+      return result.rows[0];
+    }
+  } catch (error) {
+    throw new Error('Error retrieving purchase');
+  }
+};
+
+const createPurchase = async (purchaseBodyObject) => {
+  try {
+    const {
+      cart, // this will be an object with user id and items
+      firstName,
+      lastName,
+      address // this will be an object
+    } = purchaseBodyObject;
+
+    // destructure cart object
+    const {
+      userId,
+      items
+    } = cart;
+
+    // Create purchase id - to be updated later
+    const id = Math.floor(Math.random * 2000000000);
+    // Obtain address id and create if it doesn't exist
+    let addressId = await findAddressId(address); // address is an object
+
+    if(!addressId) {
+      addressId = await createAddress(address); // address is an object
+    }
+
+    const insertParams = [id, addressId, userId, items, firstName, lastName];
+    const newPurchase = await query(
+      'INSERT INTO purchases (id, delivery_address_id, user_id, items, first_name, last_name, timestamp) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP) RETURNING *',
+      insertParams
+    );
+
+    const purchaseReturn = newPurchase.rows[0];
+    return purchaseReturn;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error creating purchase');
   }
 };
 
@@ -243,10 +322,14 @@ module.exports = {
   createUser,
   getItemById,
   getItemsFromSearch,
+  getReview,
   getCart,
   addItemToCart,
+  clearCart,
   removeItemFromCart,
-  updateCartItem
+  updateCartItem,
+  getPurchaseById,
+  createPurchase
 };
 
 // Below is just an example of how to do a query and log it to console
