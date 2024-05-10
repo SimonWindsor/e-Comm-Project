@@ -1,5 +1,14 @@
 const itemsRouter = require('express').Router();
-const {query, getItemById, getReview, getItemsFromSearch} = require('../db/index.js');
+const {query, getItemById, addItemToCart, removeItemFromCart, getItemsFromSearch} = require('../db/index.js');
+
+// Middleware to check if user is authenticated
+const isAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+};
 
 // Get all items
 itemsRouter.get('/', async (req, res, next) => {
@@ -40,6 +49,28 @@ itemsRouter.get('/search/:searchTerms', async (req, res, next) => {
     } else {
       res.send(`Could not find any items based on your search: '${req.params.searchTerms}'`);
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Add item to cart
+itemsRouter.post('/:id', isAuthenticated, async (req, res, next) => {
+  try {
+    const addedItem = await addItemToCart(req.user.id, req.body.itemString);
+    res.status(201).send(addedItem);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Remove item from cart
+itemsRouter.delete('/:itemId', async (req, res, next) => {
+  try {
+    await removeItemFromCart(req.user.id, req.params.itemId);
+    res.status(204).send();
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');

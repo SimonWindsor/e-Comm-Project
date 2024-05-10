@@ -1,8 +1,17 @@
 const reviewsRouter = require('express').Router();
-const {query, getReview} = require('../db/index.js');
+const {query, getReview, createReview} = require('../db/index.js');
+
+// Middleware to check if user is authenticated
+const isAuthenticated = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.status(401).json({ message: "Unauthorized" });
+  }
+};
 
 // Show all item's review by item id
-reviewsRouter.get('/:itemId', async (req, res, next) => {
+reviewsRouter.get('items//:itemId', async (req, res, next) => {
   try {
     const result = await query('SELECT * FROM reviews WHERE item_id = $1', [req.params.itemId]);
     if (result.rows.length > 0) {
@@ -17,7 +26,7 @@ reviewsRouter.get('/:itemId', async (req, res, next) => {
 });
 
 // Show all user's reviews by username
-reviewsRouter.get('/:username', async (req, res, next) => {
+reviewsRouter.get('users/:username', async (req, res, next) => {
   try {
     const queryText = `
       SELECT reviews.*, users.username
@@ -53,7 +62,7 @@ reviewsRouter.get('/:reviewId', async (req, res, next) => {
 });
 
 // Posts a new review
-reviewsRouter.post('/', async (req, res, next) => {
+reviewsRouter.post('/createreview', isAuthenticated, async (req, res, next) => {
   try {
 
   } catch (error) {

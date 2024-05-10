@@ -1,5 +1,5 @@
 const cartRouter = require('express').Router();
-const {getCart, addItemToCart, removeItemFromCart, updateCartItem, clearCart} = require('../db/index.js');
+const {getCart, removeItemFromCart, updateCartItem, clearCart} = require('../db/index.js');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -25,17 +25,6 @@ cartRouter.get('/', isAuthenticated, async (req, res, next) => {
   }
 });
 
-// Add item to cart
-cartRouter.post('/', isAuthenticated, async (req, res, next) => {
-  try {
-    const addedItem = await addItemToCart(req.user.id, req.body.itemString);
-    res.status(201).send(addedItem);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
 // Modify item quanity in cart
 cartRouter.put('/', isAuthenticated, async (req, res, next) => {
   try {
@@ -47,10 +36,11 @@ cartRouter.put('/', isAuthenticated, async (req, res, next) => {
   }
 });
 
-// Remove item from cart
-cartRouter.delete('/:itemId', async (req, res, next) => {
+// Remove item from cart by itemId
+cartRouter.delete('/:itemId', isAuthenticated, async (req, res, next) => {
   try {
-    await removeItemFromCart(req.user.id, req.params.itemId);
+    const itemId = req.params.itemId;
+    await removeItemFromCart(req.user.id, itemId);
     res.status(204).send();
   } catch (error) {
     console.error(error);

@@ -5,51 +5,137 @@ info:
   version: 1.0.11
 paths:
   /items:
-    summary: For viewing items in store
     get:
       summary: Gets all items
-      description: For viewing all items in store
-      operationId: getItem
+      description: Retrieves all items from the store
+      operationId: getAllItems
       responses:
-        default:
-          description: Default error sample response
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+              examples:
+                Array of items:
+                  value: >-
+                    [{"id":1,"description":"Eliminates any itch, especially on
+                    your back","num_available":32,"price":"$6.00","name":"Back
+                    Scratcher"},{"id":5,"description":"Your canine will want
+                    even more walks
+                    now!","num_available":27,"price":"$29.99","name":"Dog
+                    Leash"},{"id":6,"description":"Curl, Straighten, any style
+                    can be
+                    yours!","num_available":85,"price":"$59.99","name":"Hair
+                    Styling Wand"},{"id":7,"description":"Troll your friends, or
+                    ust use as a
+                    doll","num_available":45,"price":"$12.99","name":"Troll
+                    Doll"},{"id":2,"description":"Your cat will love
+                    it!","num_available":20,"price":"$12.99","name":"Cat
+                    Post"},{"id":3,"description":"Great for novice mechanics and
+                    DIY","num_available":39,"price":"$89.99","name":"Drivers and
+                    Sockets"},{"id":4,"description":"More sponges for
+                    less!","num_available":14,"price":"$13.99","name":"30
+                    Scouring Sponges"}]
+        '404':
+          description: No items found
       tags:
         - items
   /items/{itemId}:
     get:
       summary: Gets specific item
-      description: Gets specific item using an id as identifier
+      description: Retrieves a specific item using its ID
       operationId: getItemById
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of the item to retrieve
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+              examples:
+                Item object:
+                  value: >-
+                    {"id":1,"description":"Eliminates any itch, especially on
+                    your back","num_available":32,"price":"$6.00","name":"Back
+                    Scratcher"}
+        '404':
+          description: Item not found
+      tags:
+        - items
+    post:
+      summary: Adds item to cart
+      description: >-
+        User will be viewing an item and from there they can add it to their
+        cart. A stringified json object will be used to send the item name with
+        quanity
+      operationId: addItemToCart
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of the item to retrieve
+          required: true
+          schema:
+            type: string
       responses:
         default:
           description: Default error sample response
-      parameters:
-      - name: itemId
-        in: path
-        description: ID of the item
-        required: true
-        schema:
-          type: string
       tags:
         - items
+        - cart
+    delete:
+      summary: Removes item from cart
+      description: >-
+        From the page of the item being viewed, a user can remove from their
+        cart if they wish
+      operationId: removeItemFromCart
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of the item to retrieve
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - items
+        - cart
   /items/search/{searchTerms}:
     get:
       summary: Searches for items
-      description: Gets items based on search terms
-      operationId: search
-      responses:
-        default:
-          description: Default error sample response
+      description: Retrieves items based on search terms
+      operationId: searchItems
       parameters:
-      - name: searchTerms
-        in: path
-        description: Search terms checked with regex. These can be separated with space or + symbol
-        required: true
-        schema:
-          type: string
+        - name: searchTerms
+          in: path
+          description: Search terms to use for searching items
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '404':
+          description: No items found
       tags:
         - items
-        - search
   /users/{username}:
     get:
       summary: Gets a user's profile
@@ -59,15 +145,15 @@ paths:
         default:
           description: Default error sample response
       parameters:
-      - name: username
-        in: path
-        description: The username of the user whose profile page is to be viewed
-        required: true
-        schema:
-          type: string
+        - name: username
+          in: path
+          description: The username of the user whose profile page is to be viewed
+          required: true
+          schema:
+            type: string
       tags:
         - users
-  /reviews/{itemId}:
+  /reviews/items/{itemId}:
     get:
       summary: Gets an item's reviews
       description: Gets specific item and all the reviews for that item
@@ -76,12 +162,12 @@ paths:
         default:
           description: Default error sample response
       parameters:
-      - name: itemId
-        in: path
-        description: ID of the item
-        required: true
-        schema:
-          type: string
+        - name: itemId
+          in: path
+          description: ID of the item
+          required: true
+          schema:
+            type: string
       tags:
         - items
         - reviews
@@ -91,19 +177,29 @@ paths:
       description: Gets specific reviews by review ID
       operationId: getReview
       responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Review object:
+                  value: >-
+                    {"id":1,"item_id":3,"user_id":1,"rating":5,"review":"Works
+                    great when doing work on the ute! Highly
+                    Recommended!","timestamp":"2024-04-17T12:18:43.325Z"}
         default:
           description: Default error sample response
       parameters:
-      - name: reviewId
-        in: path
-        description: ID of the review
-        required: true
-        schema:
-          type: string
+        - name: reviewId
+          in: path
+          description: ID of the review
+          required: true
+          schema:
+            type: string
       tags:
         - items
         - reviews
-  /reivews/{username}:
+  /reviews/users/{username}:
     get:
       summary: Gets all a user's reviews
       description: Gets specific reviews by review ID
@@ -112,12 +208,12 @@ paths:
         default:
           description: Default error sample response
       parameters:
-      - name: username
-        in: path
-        description: username whose reviews are to be obtained
-        required: true
-        schema:
-          type: string
+        - name: username
+          in: path
+          description: username whose reviews are to be obtained
+          required: true
+          schema:
+            type: string
       tags:
         - users
         - reviews
@@ -129,24 +225,72 @@ paths:
       responses:
         default:
           description: Default error sample response
-
       tags:
         - purchases
   /purchases/{purchaseId}:
     get:
-      summary: Gets a specific purchase based on the purchase id. Will only work if purchase is made by currently logged-in user
+      summary: >-
+        Gets a specific purchase based on the purchase id. Will only work if
+        purchase is made by currently logged-in user
       description: Gets all user's purchases from the user object
       operationId: getPurchase
       responses:
         default:
           description: Default error sample response
       parameters:
-      - name: purchaseId
-        in: path
-        description: ID of the purhcase
-        required: true
-        schema:
-          type: string
+        - name: purchaseId
+          in: path
+          description: ID of the purhcase
+          required: true
+          schema:
+            type: string
       tags:
         - purchases
-    
+  /cart:
+    summary: THe cart of the current user
+    description: >-
+      While logged in, the user will have a "cart" of all the items they are
+      wishign to purchase. The items and their quantities can be edited
+    get:
+      summary: Shows the user's cart
+      description: >-
+        Shows all items and the quanitites the user currently has selected as
+        wishing to purchase
+      operationId: getCart
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - cart
+    put:
+      summary: Edits the quanitity of the item in user's cart
+      description: User can modify the quantity of the items in their cart
+      operationId: updateCartItem
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - cart
+    delete:
+      summary: Clears user's cart
+      description: all items in user's cart will be removed
+      operationId: clearCart
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - cart
+  /cart/itemId:
+    summary: For removign an item from the cart
+    description: >-
+      When on the cart page, the user can chose to remove an item from the cart
+      from there
+    delete:
+      summary: Removes item from the cart
+      description: For removing an item from the cart from the cart page
+      operationId: removeFromCart
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - cart
