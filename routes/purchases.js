@@ -1,5 +1,5 @@
 const purchasesRouter = require('express').Router();
-const {query, getPurchaseById} = require('../db/index.ss');
+const {query, getPurchaseById} = require('../db/index.js');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -26,10 +26,10 @@ purchasesRouter.get('/', isAuthenticated, async (req, res, next) => {
 });
 
 
-// Shows purchase by id
+// Shows purchase by id but uses req.user.id so that it can only be shown if use is logged in
 purchasesRouter.get('/:id', isAuthenticated, async (req, res, next) => {
   try {  
-    const purchase = await getPurchaseById(req.params.id);
+    const purchase = await getPurchaseById(req.user.id, req.params.id);
     if (purchase) {
       res.send(purchase);
     } else {

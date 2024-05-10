@@ -1,5 +1,5 @@
 const usersRouter = require('express').Router();
-const {getUserByUsername} = require('../db/index.js');
+const {query, getUserByUsername} = require('../db/index.js');
 
 // Shows user by username. This is mainly for seeing user profiles
 usersRouter.get('/:username', async (req, res, next) => {
