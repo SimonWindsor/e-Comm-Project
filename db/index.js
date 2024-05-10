@@ -43,8 +43,7 @@ const getUserById = async (id) => {
 // Returns either a user object or a false value. Use async/await upon calling
 const getUserByUsername = async (username) => {
   try {
-    const result = await query('SELECT * FROM users WHERE LOWER(username) = $1', [username].toLowerCase());
-    console.log(result.rows);
+    const result = await query('SELECT * FROM users WHERE LOWER(username) = $1', [username.toLowerCase()]);
 
     if (result.rows.length === 0) {
       return false;
@@ -205,7 +204,17 @@ const getReview = async (reviewId) => {
     }
   } catch (error) {
     console.error(error);
-    throw new Error('Error retrieving item by ID');
+    throw new Error('Error retrieving review by ID');
+  }
+};
+
+// Creates a new item review
+const createReview = async (reviewId) => {
+  try { // fixy fixy
+    //id, item_id, user_id, rating, review, timestamp
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error creating review');
   }
 };
 
@@ -239,7 +248,7 @@ const removeItemFromCart = async (userId, itemString) => {
     await query(`UPDATE carts SET items = array_remove(items, ${itemString}) WHERE user_id = ${userId}`);
   } catch (error) {
     console.error(error);
-    throw new Error('Error adding items to cart');
+    throw new Error('Error removing items to cart');
   }
 };
 
@@ -248,7 +257,7 @@ const updateCartItem = async (userId, oldValue, newValue) => {
     await query(`UPDATE carts SET items = array_replace(items, ${oldValue}, ${newValue}) WHERE user_id = ${userId}`);
   } catch (error) {
     console.error(error);
-    throw new Error('Error adding items to cart');
+    throw new Error('Error updating items in cart');
   }
 };
 
@@ -257,13 +266,14 @@ const clearCart = async(userId)  => {
     await query(`DELETE FROM carts WHERE user_id = ${userId}`);
   } catch (error) {
     console.error(error);
-    throw new Error('Error adding items to cart');
+    throw new Error('Error clearing cart');
   }
 };
 
-const getPurchaseById = async (purchaseId) => {
+// Returns a purchase with purchase Id, but only if user is currently logged in
+const getPurchaseById = async (userId, purchaseId) => {
   try {
-    const result = await query(`SELECT * FROM purchases WHERE id = ${purchaseId}`);
+    const result = await query(`SELECT * FROM purchases WHERE id = ${purchaseId} AND user_id = ${userId}`);
 
     if (result.rows.length === 0) {
       return false;

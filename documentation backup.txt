@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: Daintree Store - OpenAPI 3.0
+  description: This is a protoype for an e-Commerce web application.
+  version: 1.0.11
+paths:
+  /items:
+    summary: For viewing items in store
+    get:
+      summary: Gets all items
+      description: For viewing all items in store
+      operationId: getItem
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - items
+  /items/{itemId}:
+    get:
+      summary: Gets specific item
+      description: Gets specific item using an id as identifier
+      operationId: getItemById
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+      - name: itemId
+        in: path
+        description: ID of the item
+        required: true
+        schema:
+          type: integer
+      tags:
+        - items
+  /items/search/{searchTerms}:
+    get:
+      summary: Searches for items
+      description: Gets items based on search terms
+      operationId: search
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+      - name: searchTerms
+        in: path
+        description: Search terms checked with regex. These can be separated with space or + symbol
+        required: true
+        schema:
+          type: string
+      tags:
+        - items
+        - search
+  /users/{username}:
+    get:
+      summary: Gets a user's profile
+      description: Gets items based on search terms
+      operationId: getUserProfile
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+      - name: username
+        in: path
+        description: The username of the user whose profile page is to be viewed
+        required: true
+        schema:
+          type: string
+      tags:
+        - users
+  /reviews/{itemId}:
+    get:
+      summary: Gets an item's reviews
+      description: Gets specific item and all the reviews for that item
+      operationId: getItemReviews
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+      - name: itemId
+        in: path
+        description: ID of the item
+        required: true
+        schema:
+          type: integer
+      tags:
+        - items
+        - reviews
+  /reviews/{reviewId}:
+    get:
+      summary: Gets a review
+      description: Gets specific reviews by review ID
+      operationId: getReview
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+      - name: reviewId
+        in: path
+        description: ID of the review
+        required: true
+        schema:
+          type: integer
+      tags:
+        - items
+        - reviews
+  /reivews/{username}:
+    get:
+      summary: Gets all a user's reviews
+      description: Gets specific reviews by review ID
+      operationId: getUserReviews
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+      - name: username
+        in: path
+        description: username whose reviews are to be obtained
+        required: true
+        schema:
+          type: string
+      tags:
+        - users
+        - reviews
+  /purchases:
+    get:
+      summary: Gets all a user's purchases
+      description: Gets all user's purchases from the user object
+      operationId: getAllPurchases
+      responses:
+        default:
+          description: Default error sample response
+
+      tags:
+        - purchases
+  /purchases/{purchaseId}:
+    get:
+      summary: Gets a specific purchase based on the purchase id
+      description: Gets all user's purchases from the user object
+      operationId: getPurchase
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+      - name: purchaseId
+        in: path
+        description: ID of the purhcase
+        required: true
+        schema:
+          type: integer
+      tags:
+        - purchases
+    
