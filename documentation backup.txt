@@ -171,6 +171,23 @@ paths:
       tags:
         - items
         - reviews
+    post:
+      summary: Adds a new item review
+      description: Users may wish to create reviews for items that they have purchased
+      operationId: createReview
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+        - name: itemId
+          in: path
+          description: ID of the item
+          required: true
+          schema:
+            type: string
+      tags:
+        - reviews
+        - items
   /reviews/{reviewId}:
     get:
       summary: Gets a review

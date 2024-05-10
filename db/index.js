@@ -238,9 +238,24 @@ const getReview = async (reviewId) => {
 };
 
 // Creates a new item review
-const createReview = async (reviewId) => {
-  try { // fixy fixy
-    //id, item_id, user_id, rating, review, timestamp
+const createReview = async (userId, reviewBodyObject) => {
+  try {
+    const {
+      itemId,
+      rating,
+      review
+    } = reviewBodyObject;
+    const id = uuid();
+
+    const insertParams = [id, itemId, userId, rating, review];
+    const queryText = `
+      INSERT INTO reviews (id, item_id, user_id, rating, review, timestamp)
+        VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+      RETURNING *
+    `;
+
+    const newReview = await query(queryText, insertParams)
+    return newReview;
   } catch (error) {
     console.error(error);
     throw new Error('Error creating review');
