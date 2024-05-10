@@ -29,7 +29,7 @@ paths:
         description: ID of the item
         required: true
         schema:
-          type: integer
+          type: string
       tags:
         - items
   /items/search/{searchTerms}:
@@ -81,7 +81,7 @@ paths:
         description: ID of the item
         required: true
         schema:
-          type: integer
+          type: string
       tags:
         - items
         - reviews
@@ -99,7 +99,7 @@ paths:
         description: ID of the review
         required: true
         schema:
-          type: integer
+          type: string
       tags:
         - items
         - reviews
@@ -134,7 +134,7 @@ paths:
         - purchases
   /purchases/{purchaseId}:
     get:
-      summary: Gets a specific purchase based on the purchase id
+      summary: Gets a specific purchase based on the purchase id. Will only work if purchase is made by currently logged-in user
       description: Gets all user's purchases from the user object
       operationId: getPurchase
       responses:
@@ -146,7 +146,7 @@ paths:
         description: ID of the purhcase
         required: true
         schema:
-          type: integer
+          type: string
       tags:
         - purchases
     

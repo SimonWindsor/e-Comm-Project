@@ -15,7 +15,7 @@ cartRouter.get('/', isAuthenticated, async (req, res, next) => {
   try {
     const cart = await getCart(req.user.id);
     if (cart) {
-      res.send(cart);
+      res.status(200).send(cart);
     } else {
       res.status(404).send('404 Cart not found');
     }
@@ -28,7 +28,8 @@ cartRouter.get('/', isAuthenticated, async (req, res, next) => {
 // Add item to cart
 cartRouter.post('/', isAuthenticated, async (req, res, next) => {
   try {
-    await addItemToCart(req.user.id, req.body.itemString);
+    const addedItem = await addItemToCart(req.user.id, req.body.itemString);
+    res.status(201).send(addedItem);
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
@@ -38,7 +39,8 @@ cartRouter.post('/', isAuthenticated, async (req, res, next) => {
 // Modify item quanity in cart
 cartRouter.put('/', isAuthenticated, async (req, res, next) => {
   try {
-    await updateCartItem(req.user.id, req.body.oldVAlue, req.body.newValue);
+    const updatedItem = await updateCartItem(req.user.id, req.body.oldVAlue, req.body.newValue);
+    res.status(200).send(updatedItem);
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
@@ -48,7 +50,8 @@ cartRouter.put('/', isAuthenticated, async (req, res, next) => {
 // Remove item from cart
 cartRouter.delete('/:itemId', async (req, res, next) => {
   try {
-    await removeItemFromCart(req.user.id, req.body.itemString);
+    await removeItemFromCart(req.user.id, req.params.itemId);
+    res.status(204).send();
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
@@ -59,6 +62,7 @@ cartRouter.delete('/:itemId', async (req, res, next) => {
 cartRouter.delete('/', isAuthenticated, async (req, res, next) => {
   try {
     await clearCart(req.user.id);
+    res.status(204).send();
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');

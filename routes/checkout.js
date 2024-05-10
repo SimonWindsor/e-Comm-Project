@@ -23,7 +23,7 @@ checkoutRouter.get('/', isAuthenticated, async (req, res, next) => {
     console.error(error);
     res.status(500).send('Internal Server Error');
   }
-});
+});+
 
 checkoutRouter.post('/', isAuthenticated, async (req, res, next) => {
   try {
@@ -31,6 +31,7 @@ checkoutRouter.post('/', isAuthenticated, async (req, res, next) => {
     if (newPurchase) {
       await clearCart(newPurchase.id);
       res.redirect(`/complete?purchaseId=${newPurchase.id}`);
+      res.status(201).send(newPurchase);
     } else {
       res.status(500).json({
         msg: 'Purchase not completed'
@@ -42,9 +43,22 @@ checkoutRouter.post('/', isAuthenticated, async (req, res, next) => {
   }
 });
 
+// Update the quantity of an item at the checkout stage
 checkoutRouter.put('/', async (req, res, next) => {
   try {
-    await updateCartItem(req.user.id, req.body.oldVAlue, req.body.newValue);
+    const updatedItem = await updateCartItem(req.user.id, req.body.oldVAlue, req.body.newValue);
+    res.status(200).send(updatedItem);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Remove item from cart at checkout stage
+checkoutRouter.delete('/:itemId', async (req, res, next) => {
+  try {
+    await removeItemFromCart(req.user.id, req.params.itemId);
+    res.status(204).send();
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
