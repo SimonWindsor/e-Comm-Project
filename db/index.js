@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
-const uuid = require('uuidv4');
+const { uuid } = require('uuidv4');
  
 const pool = new Pool({
   user: 'postgres',
@@ -83,7 +83,7 @@ const createUser = async (userBodyObject) => {
       throw new Error('User already exists');
     } else {
       // Create user id - to be updated later
-      const id = Math.floor(Math.random * 2000000000);
+      const id = uuid();
       // Obtain address id and create if it doesn't exist
       let addressId = await findAddressId(address); // address is an object
 
@@ -218,6 +218,15 @@ const getItemsFromSearch = async (searchTerms) => {
   }
 };
 
+// Adds items into database. This is only for admins!
+//add later
+
+// Modifies items in database. This is only for admins!
+//add later
+
+// Removes items from database. This is only for admins!
+//add later
+
 // Returns either an review object or a false value. Use async/await upon calling
 const getReview = async (reviewId) => {
   try {
@@ -259,6 +268,33 @@ const createReview = async (userId, reviewBodyObject) => {
   } catch (error) {
     console.error(error);
     throw new Error('Error creating review');
+  }
+};
+
+//Edits an item review
+const updateReview = async (reviewId, reviewBodyObject) => {
+  try {
+    const { rating, review } = reviewBodyObject;
+    const updatedReview = await query(`
+      UPDATE reviews
+      SET rating = $1 AND review = $2
+      WHERE id = $3
+    `, [rating, review, reviewId]);
+
+    return updatedReview;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error updating review');
+  }
+};
+
+//Deletes an item review
+const deleteReview = async (reviewId) => {
+  try {
+    await query('DELETE FRON reviews WHERE id = $1', [reviewId]);
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error deleting review');
   }
 };
 
@@ -397,6 +433,8 @@ module.exports = {
   getItemsFromSearch,
   getReview,
   createReview,
+  updateReview,
+  deleteReview,
   getCart,
   addItemToCart,
   clearCart,

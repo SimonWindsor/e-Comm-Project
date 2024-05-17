@@ -1,5 +1,5 @@
 const reviewsRouter = require('express').Router();
-const {query, getReview, createReview} = require('../db/index.js');
+const {query, getReview, createReview, updateReview, deleteReview} = require('../db/index.js');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -11,7 +11,7 @@ const isAuthenticated = (req, res, next) => {
 };
 
 // Show all item's review by item id
-reviewsRouter.get('items/:itemId', async (req, res, next) => {
+reviewsRouter.get('/items/:itemId', async (req, res, next) => {
   try {
     const result = await query('SELECT * FROM reviews WHERE item_id = $1', [req.params.itemId]);
     if (result.rows.length > 0) {
@@ -26,7 +26,7 @@ reviewsRouter.get('items/:itemId', async (req, res, next) => {
 });
 
 // Show all user's reviews by username
-reviewsRouter.get('users/:username', async (req, res, next) => {
+reviewsRouter.get('/users/:username', async (req, res, next) => {
   try {
     const queryText = `
       SELECT reviews.*, users.username
@@ -62,12 +62,33 @@ reviewsRouter.get('/:reviewId', async (req, res, next) => {
 });
 
 // Posts a new review
-reviewsRouter.post('/items/:itemId', isAuthenticated, async (req, res, next) => {
+reviewsRouter.post('/', isAuthenticated, async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const newReview = await createReview(userId, req.body);
+    const newReview = await createReview(req.user.id, req.body);
     res.redirect(`/items?itemId=${newReview.id}`);
     res.status(201).send(newReview);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Edits a review
+reviewsRouter.put('/:reviewId', isAuthenticated, async(req, res, next) => {
+  try {
+    const updatedReview = await updateReview(req.params.reviewId, req.body);
+    res.status(200).send(updatedReview);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Deletes a review
+reviewsRouter.delete('/:reviewId', isAuthenticated, async(req, res, next) => {
+  try {
+    await deleteReview(req.params.reviewId);
+    res.status(204).send();
   } catch (error) {
     console.error(error);
     res.status(500).send('Internal Server Error');
