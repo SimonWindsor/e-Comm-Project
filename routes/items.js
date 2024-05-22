@@ -1,5 +1,5 @@
 const itemsRouter = require('express').Router();
-const {query, getItemById, addItemToCart, removeItemFromCart, getItemsFromSearch} = require('../db/index.js');
+const {query, getItemById, getItemsFromSearch} = require('../db/index.js');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -55,26 +55,13 @@ itemsRouter.get('/search/:searchTerms', async (req, res, next) => {
   }
 });
 
-// Add item to cart
-itemsRouter.post('/:id', isAuthenticated, async (req, res, next) => {
-  try {
-    const addedItem = await addItemToCart(req.user.id, req.body.itemString);
-    res.status(201).send(addedItem);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+// For adding an item into the database- this is for admins only!
+//add later
 
-// Remove item from cart
-itemsRouter.delete('/:itemId', async (req, res, next) => {
-  try {
-    await removeItemFromCart(req.user.id, req.params.itemId);
-    res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-});
+// For modifying an item in database - this is for admins only!
+//add later
+
+// For removing an item from database - this is for admins only!
+//add later
 
 module.exports = itemsRouter;

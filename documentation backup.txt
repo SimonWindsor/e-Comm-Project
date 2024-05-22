@@ -395,6 +395,47 @@ paths:
                     {"user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":2}]}
         default:
           description: Default error sample response
+      parameters:
+        - name: old item value
+          in: header
+          description: json object of an item
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quantity: 1
+        - name: new item value
+          in: header
+          description: json object of an item
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quantity: 2
+      tags:
+        - cart
+    post:
+      summary: Adds item to cart
+      description: >-
+        User will be viewing an item and from there they can add it to their
+        cart. A stringified json object will be used to send the item name with
+        quanity
+      operationId: addItemToCart
+      parameters:
+        - name: item
+          in: header
+          description: json of the item to retrieve
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quanity: 1
+      responses:
+        default:
+          description: Default error sample response
       tags:
         - cart
     delete:
@@ -406,7 +447,11 @@ paths:
       parameters:
         - name: item
           in: header
+<<<<<<< HEAD
           description: json of the item to delete
+=======
+          description: json of the item to retrieve
+>>>>>>> d30c3c0b0d63e2b2ad1c2d5a4eb1499772a9ac9a
           required: true
           schema:
             type: object
