@@ -72,45 +72,6 @@ paths:
           description: Item not found
       tags:
         - items
-    post:
-      summary: Adds item to cart
-      description: >-
-        User will be viewing an item and from there they can add it to their
-        cart. A stringified json object will be used to send the item name with
-        quanity
-      operationId: addItemToCart
-      parameters:
-        - name: itemId
-          in: path
-          description: ID of the item to retrieve
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          description: Default error sample response
-      tags:
-        - items
-        - cart
-    delete:
-      summary: Removes item from cart
-      description: >-
-        From the page of the item being viewed, a user can remove from their
-        cart if they wish
-      operationId: removeItemFromCart
-      parameters:
-        - name: itemId
-          in: path
-          description: ID of the item to retrieve
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          description: Default error sample response
-      tags:
-        - items
-        - cart
   /items/search/{searchTerms}:
     get:
       summary: Searches for items
@@ -132,6 +93,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Item'
+                example: [{"description":"Great for novice mechanics and DIY","num_available":39,"price":"$89.99","name":"Drivers and Sockets","id":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e"}]
         '404':
           description: No items found
       tags:
@@ -153,6 +115,33 @@ paths:
             type: string
       tags:
         - users
+  /reviews:
+    post:
+      summary: Adds a new item review
+      description: Users may wish to create reviews for items that they have purchased
+      operationId: createReview
+      responses:
+        default:
+          description: Default error sample response
+          content:
+            application/json:
+              examples:
+                New Review:
+                  value:
+                    {"rating":5,"review":"Item is amazing! CAn;t see where I would be without it!","timestamp":"2024-04-17T12:18:43.325Z","user_id":"be680fa4-3cc0-4a5b-b4e3-356976279572","item_id":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","id":"c367347d-f569-41f6-a9ee-9d0c886c0ff2"}
+      parameters:
+        - name: review
+          in: header
+          description: json object containing itemId, rating and review
+          required: true
+          schema:
+            type: object
+            example:
+              itemId: be680fa4-3cc0-4a5b-b4e3-356976279572
+              rating: 5
+              review: Item is amazing! Can't see where I would be without it!
+      tags:
+        - reviews
   /reviews/items/{itemId}:
     get:
       summary: Gets an item's reviews
@@ -161,6 +150,14 @@ paths:
       responses:
         default:
           description: Default error sample response
+          content:
+            application/json:
+              examples:
+                Array of reviews:
+                  value: >-
+                    [{"rating":5,"review":"Works great when doing work on the
+                    ute! Highly
+                    Recommended!","timestamp":"2024-04-17T12:18:43.325Z","user_id":"be680fa4-3cc0-4a5b-b4e3-356976279572","item_id":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","id":"c367347d-f569-41f6-a9ee-9d0c886c0ff2"}]
       parameters:
         - name: itemId
           in: path
@@ -171,23 +168,6 @@ paths:
       tags:
         - items
         - reviews
-    post:
-      summary: Adds a new item review
-      description: Users may wish to create reviews for items that they have purchased
-      operationId: createReview
-      responses:
-        default:
-          description: Default error sample response
-      parameters:
-        - name: itemId
-          in: path
-          description: ID of the item
-          required: true
-          schema:
-            type: string
-      tags:
-        - reviews
-        - items
   /reviews/{reviewId}:
     get:
       summary: Gets a review
@@ -201,9 +181,9 @@ paths:
               examples:
                 Review object:
                   value: >-
-                    {"id":1,"item_id":3,"user_id":1,"rating":5,"review":"Works
-                    great when doing work on the ute! Highly
-                    Recommended!","timestamp":"2024-04-17T12:18:43.325Z"}
+                    {"rating":5,"review":"Works great when doing work on the
+                    ute! Highly
+                    Recommended!","timestamp":"2024-04-17T12:18:43.325Z","user_id":"be680fa4-3cc0-4a5b-b4e3-356976279572","item_id":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","id":"c367347d-f569-41f6-a9ee-9d0c886c0ff2"}
         default:
           description: Default error sample response
       parameters:
@@ -214,7 +194,57 @@ paths:
           schema:
             type: string
       tags:
-        - items
+        - reviews
+    put:
+      summary: Edits an item review
+      description: >-
+        A user may wishto update a review they have made for a particular item.
+        This allows such an update
+      operationId: updateReview
+      responses:
+        default:
+          description: Default error sample response
+          content:
+            application/json:
+              examples:
+                Review object:
+                  value: >- 
+                    {"item_id":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e", "user_id": "be680fa4-3cc0-4a5b-b4e3-356976279572", "rating":4,"review":"Was pretty good! Just had to change from 3 to 4", "id":"c367347d-f569-41f6-a9ee-9d0c886c0ff2"}
+      parameters:
+        - name: reviewId
+          in: path
+          description: ID of the review
+          required: true
+          schema:
+            type: string
+        - name: review
+          in: header
+          description: updated review
+          required: true
+          schema:
+            type: object
+            example:
+              rating: 4
+              review: "Was pretty good! Just had to change from 3 to 4"
+      tags:
+        - reviews
+    delete:
+      summary: Deletes an item review
+      description: >-
+        A user may wish to delete a reivew they have made. This operation allows
+        for this
+      operationId: deleteReview
+      responses:
+        default:
+          description: Default error sample response
+      parameters:
+        - name: reviewId
+          in: path
+          description: ID of the review
+          required: true
+          schema:
+            type: string
+      tags:
         - reviews
   /reviews/users/{username}:
     get:
@@ -224,6 +254,14 @@ paths:
       responses:
         default:
           description: Default error sample response
+          content:
+            application/json:
+              examples:
+                Array of reviews:
+                  value: >-
+                    [{"rating":5,"review":"Works great when doing work on the
+                    ute! Highly
+                    Recommended!","timestamp":"2024-04-17T12:18:43.325Z","user_id":"be680fa4-3cc0-4a5b-b4e3-356976279572","item_id":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","id":"c367347d-f569-41f6-a9ee-9d0c886c0ff2","username":"J-Smitty"}]
       parameters:
         - name: username
           in: path
@@ -242,29 +280,44 @@ paths:
       responses:
         default:
           description: Default error sample response
+          content:
+            application/json:
+              examples:
+                Array of purchases:
+                  value: >-
+                    [{"id":"2d0b4c02-5130-4013-aaa2-95824c44a683","user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","timestamp":"2024-04-17 22:12:40.125351","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":1}], "delivery_address_id": "6cb71fda-46ad-4d6a-ac9c-69f5280ab368"}]
       tags:
         - purchases
   /purchases/{purchaseId}:
     get:
-      summary: >-
+      summary: Gets a purchase by purchase ID
+      description: >-
         Gets a specific purchase based on the purchase id. Will only work if
         purchase is made by currently logged-in user
-      description: Gets all user's purchases from the user object
       operationId: getPurchase
       responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Purchase object:
+                  value: >-
+                    {"id":"2d0b4c02-5130-4013-aaa2-95824c44a683","user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","timestamp":"2024-04-17 22:12:40.125351","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":1}], "delivery_address_id": "6cb71fda-46ad-4d6a-ac9c-69f5280ab368"}
+
         default:
           description: Default error sample response
       parameters:
         - name: purchaseId
           in: path
-          description: ID of the purhcase
+          description: ID of the purchase
           required: true
           schema:
             type: string
       tags:
         - purchases
   /cart:
-    summary: THe cart of the current user
+    summary: The cart of the current user
     description: >-
       While logged in, the user will have a "cart" of all the items they are
       wishign to purchase. The items and their quantities can be edited
@@ -275,6 +328,14 @@ paths:
         wishing to purchase
       operationId: getCart
       responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Cart Array:
+                  value: >-
+                    {"user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":1}]}
         default:
           description: Default error sample response
       tags:
@@ -284,30 +345,141 @@ paths:
       description: User can modify the quantity of the items in their cart
       operationId: updateCartItem
       responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Cart Array:
+                  value: >-
+                    {"user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":2}]}
+        default:
+          description: Default error sample response
+      parameters:
+        - name: new item value
+          in: header
+          description: json object of an item
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quantity: 2
+      tags:
+        - cart
+    post:
+      summary: Adds item to cart
+      description: >-
+        User will be viewing an item and from there they can add it to their
+        cart. A stringified json object will be used to send the item name with
+        quanity
+      operationId: addItemToCart
+      parameters:
+        - name: item
+          in: header
+          description: json of the item to retrieve
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quanity: 1
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Cart Array:
+                  value: >-
+                    {"user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":2}]}
         default:
           description: Default error sample response
       tags:
         - cart
     delete:
-      summary: Clears user's cart
-      description: all items in user's cart will be removed
+      summary: Removes item from cart
+      description: >-
+        From the page of the item being viewed, a user can remove from their
+        cart if they wish
+      operationId: removeFromCart
+      parameters:
+        - name: item
+          in: header
+          description: json of the item to delete
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quanity: 1
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - cart
+  /cart/clear:
+    summary: For clearning the user's cart
+    description: For the user to delete all cart contents
+    delete:
+      summary: Removes all items from the cart
+      description: For clearing entirety of cart
       operationId: clearCart
       responses:
         default:
           description: Default error sample response
       tags:
         - cart
-  /cart/itemId:
-    summary: For removign an item from the cart
-    description: >-
-      When on the cart page, the user can chose to remove an item from the cart
-      from there
-    delete:
-      summary: Removes item from the cart
-      description: For removing an item from the cart from the cart page
-      operationId: removeFromCart
+  /checkout:
+    summary: For checking out items before purchase
+    description: For viewing, editing and removing items from the checkout
+    get:
+      summary: Shows everything in the cart before purchase
+      description: >-
+        Allows the user to review all items in cart immediately before
+        finaiizing a purchase
+      operationId: getCheckout
       responses:
         default:
           description: Default error sample response
       tags:
-        - cart
+        - checkout
+    put:
+      summary: Edits item details in checkout
+      description: >-
+        Allows user to update number of a particular item they have in their
+        cart right before purchase
+      operationId: updateCheckoutItem
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - checkout
+    delete:
+      summary: Removes item from cart at checkout
+      description: >-
+        Allows user to remove a particular item they have in their cart right
+        before purchase. Item 
+      operationId: removeItemFromCheckout
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - checkout
+  /checkout/complete:
+    summary: Redirecting after purchase is complete
+    description: >-
+      After purchase has been finalized, user is directed to a "purchase
+      complete" screen
+    get:
+      summary: Shows user complete purchase
+      description: >-
+        After user completes a purchase, they are redirected and shown their
+        purchasae details
+      operationId: completePurchase
+      responses:
+        default:
+          description: Default error sample response
+      tags:
+        - checkout
+        - purchases
