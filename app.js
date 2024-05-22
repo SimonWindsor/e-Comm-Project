@@ -8,8 +8,8 @@ const apiRouter = require('./routes/api');
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcrypt');
-const {getUserById, getUserByUsername, createUser} = require('./db/index.js');
-	  
+const { getUserById, getUserByUsername, createUser } = require('./db/index.js');
+
 app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests from index.html
@@ -18,25 +18,14 @@ app.use(cors());
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
 
-// Add middleware for handing seesion storage
-app.use(
-  session({
-    secret: "fwababa$$%%31",
-    cookie: { maxAge: 1000 * 60 * 60 * 24, secure: true }, // one day expiry
-    saveUninitialized: false,
-    resave: false,
-    store
-  })
-);
-
-// Add middleware for the api and routes
-app.use('/', apiRouter);
-
-// Add passport middleware for loggin in
-app.use(passport.initialize());
-
-// Add the middleware to implement a session with passport
-app.use(passport.session());
+// Add middleware for handling session storage
+app.use(session({
+  secret: "fwababa$$%%31",
+  cookie: { maxAge: 1000 * 60 * 60 * 24, secure: true }, // one day expiry
+  saveUninitialized: false,
+  resave: false,
+  store
+}));
 
 // For serializing the user
 passport.serializeUser((user, done) => {
@@ -88,7 +77,7 @@ app.get('/profile', (req, res) => {
     // If user is not authenticated, redirect to login page
     return res.redirect('/login');
   } else {
-    res.send(req.user); 
+    res.send(req.user);
   }
 });
 
@@ -98,9 +87,9 @@ app.get("/logout", (req, res) => {
 });
 
 app.post('/login',
-  passport.authenticate('local', { failureRedirect : '/login' }),
+  passport.authenticate('local', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect('profile'); 
+    res.redirect('profile');
   }
 );
 
@@ -127,6 +116,9 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.listen(3000,()=>{
- console.log('Express server started at port 3000');
+// Add middleware for the api and routes
+app.use('/', apiRouter);
+
+app.listen(3000, () => {
+  console.log('Express server started at port 3000');
 });
