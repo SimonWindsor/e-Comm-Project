@@ -8,6 +8,8 @@ const apiRouter = require('./routes/api');
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcrypt');
+const { check, validationResult } = require('express-validator'); // For sanitizing inputs
+const helmet = require("helmet"); // For additional security
 const {getUserById, getUserByUsername, createUser} = require('./db/index.js');
 	  
 app.set('port', process.env.PORT || 3000);
@@ -22,7 +24,11 @@ app.use(bodyParser.json());
 app.use(
   session({
     secret: "fwababa$$%%31",
-    cookie: { maxAge: 1000 * 60 * 60 * 24, secure: true }, // one day expiry
+    cookie: { 
+      maxAge: 1000 * 60 * 60 * 24, // one day expiry
+      httpOnly: true, 
+      secure: true 
+    }, 
     saveUninitialized: false,
     resave: false,
     store
@@ -37,6 +43,9 @@ app.use(passport.initialize());
 
 // Add the middleware to implement a session with passport
 app.use(passport.session());
+
+// Add the middleware for addional security with http headers
+app.use(helmet());
 
 // For serializing the user
 passport.serializeUser((user, done) => {
