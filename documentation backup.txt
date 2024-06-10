@@ -93,6 +93,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Item'
+                example: [{"description":"Great for novice mechanics and DIY","num_available":39,"price":"$89.99","name":"Drivers and Sockets","id":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e"}]
         '404':
           description: No items found
       tags:
@@ -279,29 +280,44 @@ paths:
       responses:
         default:
           description: Default error sample response
+          content:
+            application/json:
+              examples:
+                Array of purchases:
+                  value: >-
+                    [{"id":"2d0b4c02-5130-4013-aaa2-95824c44a683","user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","timestamp":"2024-04-17 22:12:40.125351","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":1}], "delivery_address_id": "6cb71fda-46ad-4d6a-ac9c-69f5280ab368"}]
       tags:
         - purchases
   /purchases/{purchaseId}:
     get:
-      summary: >-
+      summary: Gets a purchase by purchase ID
+      description: >-
         Gets a specific purchase based on the purchase id. Will only work if
         purchase is made by currently logged-in user
-      description: Gets all user's purchases from the user object
       operationId: getPurchase
       responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Purchase object:
+                  value: >-
+                    {"id":"2d0b4c02-5130-4013-aaa2-95824c44a683","user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","timestamp":"2024-04-17 22:12:40.125351","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":1}], "delivery_address_id": "6cb71fda-46ad-4d6a-ac9c-69f5280ab368"}
+
         default:
           description: Default error sample response
       parameters:
         - name: purchaseId
           in: path
-          description: ID of the purhcase
+          description: ID of the purchase
           required: true
           schema:
             type: string
       tags:
         - purchases
   /cart:
-    summary: THe cart of the current user
+    summary: The cart of the current user
     description: >-
       While logged in, the user will have a "cart" of all the items they are
       wishign to purchase. The items and their quantities can be edited
@@ -312,6 +328,14 @@ paths:
         wishing to purchase
       operationId: getCart
       responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Cart Array:
+                  value: >-
+                    {"user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":1}]}
         default:
           description: Default error sample response
       tags:
@@ -321,6 +345,54 @@ paths:
       description: User can modify the quantity of the items in their cart
       operationId: updateCartItem
       responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Cart Array:
+                  value: >-
+                    {"user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":2}]}
+        default:
+          description: Default error sample response
+      parameters:
+        - name: new item value
+          in: header
+          description: json object of an item
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quantity: 2
+      tags:
+        - cart
+    post:
+      summary: Adds item to cart
+      description: >-
+        User will be viewing an item and from there they can add it to their
+        cart. A stringified json object will be used to send the item name with
+        quanity
+      operationId: addItemToCart
+      parameters:
+        - name: item
+          in: header
+          description: json of the item to retrieve
+          required: true
+          schema:
+            type: object
+            example:
+              item: e64bea73-2500-42f7-94a8-7c69b2ceaf9e
+              quanity: 1
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              examples:
+                Cart Array:
+                  value: >-
+                    {"user_id":"2d0b4c02-5130-4013-aaa2-95824c44a683","items":[{"item":"e64bea73-2500-42f7-94a8-7c69b2ceaf9e","quantity":2}]}
         default:
           description: Default error sample response
       parameters:
@@ -375,7 +447,11 @@ paths:
       parameters:
         - name: item
           in: header
+<<<<<<< HEAD
+          description: json of the item to delete
+=======
           description: json of the item to retrieve
+>>>>>>> d30c3c0b0d63e2b2ad1c2d5a4eb1499772a9ac9a
           required: true
           schema:
             type: object

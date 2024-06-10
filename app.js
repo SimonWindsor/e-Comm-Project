@@ -12,6 +12,7 @@ const { check, validationResult } = require('express-validator'); // For sanitiz
 const helmet = require("helmet"); // For additional security
 const {getUserById, getUserByUsername, createUser} = require('./db/index.js');
 	  
+
 app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests from index.html
@@ -20,6 +21,7 @@ app.use(cors());
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
 
+<<<<<<< HEAD
 // Add middleware for handing seesion storage
 app.use(
   session({
@@ -97,7 +99,7 @@ app.get('/profile', (req, res) => {
     // If user is not authenticated, redirect to login page
     return res.redirect('/login');
   } else {
-    res.send(req.user); 
+    res.send(req.user);
   }
 });
 
@@ -107,9 +109,9 @@ app.get("/logout", (req, res) => {
 });
 
 app.post('/login',
-  passport.authenticate('local', { failureRedirect : '/login' }),
+  passport.authenticate('local', { failureRedirect: '/login' }),
   (req, res) => {
-    res.redirect('profile'); 
+    res.redirect('profile');
   }
 );
 
@@ -136,6 +138,9 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.listen(3000,()=>{
- console.log('Express server started at port 3000');
+// Add middleware for the api and routes
+app.use('/', apiRouter);
+
+app.listen(3000, () => {
+  console.log('Express server started at port 3000');
 });
