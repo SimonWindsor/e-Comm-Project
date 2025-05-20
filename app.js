@@ -21,7 +21,6 @@ app.use(cors());
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
 
-<<<<<<< HEAD
 // Add middleware for handing seesion storage
 app.use(
   session({
@@ -29,7 +28,7 @@ app.use(
     cookie: { 
       maxAge: 1000 * 60 * 60 * 24, // one day expiry
       httpOnly: true, 
-      secure: true 
+      secure: false // change to true when deploying 
     }, 
     saveUninitialized: false,
     resave: false,
@@ -40,7 +39,7 @@ app.use(
 // Add middleware for the api and routes
 app.use('/', apiRouter);
 
-// Add passport middleware for loggin in
+// Add passport middleware for logging in
 app.use(passport.initialize());
 
 // Add the middleware to implement a session with passport

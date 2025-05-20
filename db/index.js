@@ -195,23 +195,21 @@ const getItemsFromSearch = async (searchTerms) => {
   try {
     let allWords = searchTerms.match(/(?:[^\s,"]+|"[^"]*")+/g);
     // In case users use '+' between words, above regex does not filter them out
-    allWords = allWords.filter(element => {return element != '+'});
+    // Also filters empty strings and single spaces
+    allWords = allWords.filter(element => {return element && element != '+'});
     
     const promises = allWords.map(async (word) => {
       const result = await query(`
-        SELECT * FROM items WHERE LOWER(name) LIKE '%${word}%'`
+        SELECT * FROM items WHERE LOWER(name) ILIKE $1`,
+        [`%${word.toLowerCase()}%`]
       );
       return result.rows;
     });
 
     const results = await Promise.all(promises);
-    flatResults = results.flat();
+    const flatResults = results.flat();
 
-    if (flatResults.length === 0) {
-      return false;
-    } else {
-      return flatResults;
-    }
+    return flatResults.length > 0 ? flatResults : false;
   } catch (error) {
     console.error(error);
     throw new Error('Error retrieving search');
