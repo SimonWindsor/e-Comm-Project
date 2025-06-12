@@ -17,5 +17,9 @@
     "passport-local": "^1.0.0",
     "pg": "^8.11.5",
     "uuidv4": "^6.2.13"
-  }
+  },
+  "scripts": {
+  "start": "node app.js",
+  "dev": "nodemon app.js"
+}
 }
