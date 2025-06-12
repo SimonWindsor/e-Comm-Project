@@ -175,7 +175,11 @@ const createAddress = async (address) => {
 const getItemById = async (id) => {
   try {
     const result = await query(
-      `SELECT * FROM items WHERE id = $1`,
+      `SELECT i.*, ip.file AS picture
+      FROM items i JOIN item_pictures ip
+      ON i.id = ip.item_id
+      WHERE id = $1
+      AND ip.main_picture = TRUE`,
       [id]
     );
 
@@ -190,6 +194,51 @@ const getItemById = async (id) => {
   }
 };
 
+// Get all item pictures or return a false value. Use async/await upon calling
+// Multiple pictures is likely to be out of scope for this project
+const getAllItemPictures = async (id) => {
+  try {
+    const result = await query(
+      `SELECT ip.file AS picture
+      FROM item_pictures ip JOIN items i
+      ON ip.item_id = i.id
+      WHERE i.id = $1`, [id]
+    );
+
+    if (result.rows.length === 0) {
+      return false;
+    } else {
+      return result.rows;
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error item pictures by ID');
+  }
+}
+
+// Returns an array of objects or a false value. Use async/await upon calling
+const getItemsByCategory = async (category) => {
+  try {
+    const result = await query(
+      `SELECT i.*, ip.file AS picture FROM items i
+      JOIN item_pictures ip
+      ON i.id = ip.item_id
+      WHERE LOWER(category) = $1
+      AND ip.main_picture = TRUE`,
+      [category.toLowerCase()]
+    );
+
+    if (result.rows.length === 0) {
+      return false;
+    } else {
+      return result.rows;
+    }
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error retrieving item by category');
+  }
+};
+
 // Returns items a user searchs for or a false value. Use async/await upon calling
 const getItemsFromSearch = async (searchTerms) => {
   try {
@@ -199,8 +248,11 @@ const getItemsFromSearch = async (searchTerms) => {
     allWords = allWords.filter(element => {return element && element != '+'});
     
     const promises = allWords.map(async (word) => {
-      const result = await query(`
-        SELECT * FROM items WHERE LOWER(name) ILIKE $1`,
+      const result = await query(
+        `SELECT i.*, ip.file AS picture FROM items i
+        JOIN item_pictures ip
+        ON i.id = ip.item_id 
+        WHERE LOWER(name) ILIKE $1`,
         [`%${word.toLowerCase()}%`]
       );
       return result.rows;
@@ -428,6 +480,8 @@ module.exports = {
   getUserByUsername,
   createUser,
   getItemById,
+  getAllItemPictures,
+  getItemsByCategory,
   getItemsFromSearch,
   getReview,
   createReview,
