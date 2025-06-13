@@ -8,7 +8,7 @@ const pool = new Pool({
   // database: 'Daintree Store',
   // password: 'postgres',
   // port: 5432,
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
   }
