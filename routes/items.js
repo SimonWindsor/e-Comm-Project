@@ -29,17 +29,20 @@ itemsRouter.get('/', async (req, res, next) => {
   }
 });
 
+
 // Show item by id
 itemsRouter.get('/id/:id', async (req, res, next) => {
   try {
-    console.log('Request received with ID:', req.params.id);
-    const item = await getItemById(req.params.id);
+    const result = await getItemById(req.params.id);
     if (item) {
-      res.status(200).send(item);
+      console.log('got it!')
+      res.status(200).send(result);
     } else {
+      console.log('not got it!')
       res.status(404).send('404 Item not found!');
     }
   } catch (error) {
+    console.log('still notgot it!')
     console.error(error);
     res.status(500).send('Internal Server Error');
   }
@@ -48,9 +51,9 @@ itemsRouter.get('/id/:id', async (req, res, next) => {
 // Get all an item's pictures
 itemsRouter.get('/pictures/:id', async (req, res, next) => {
   try {
-    const item = await getAllItemPictures(req.params.id);
+    const result = await getAllItemPictures(req.params.id);
     if (item) {
-      res.status(200).send(item);
+      res.status(200).send(result);
     } else {
       res.status(404).send('404 Pictures not found!');
     }
