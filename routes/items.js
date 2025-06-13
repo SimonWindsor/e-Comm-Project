@@ -34,7 +34,7 @@ itemsRouter.get('/', async (req, res, next) => {
 itemsRouter.get('/id/:id', async (req, res, next) => {
   try {
     const result = await getItemById(req.params.id);
-    if (item) {
+    if (result) {
       console.log('got it!')
       res.status(200).send(result);
     } else {
