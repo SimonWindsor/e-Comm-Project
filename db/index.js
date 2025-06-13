@@ -178,7 +178,8 @@ const getItemById = async (id) => {
       FROM items i JOIN item_pictures ip
       ON i.id = ip.item_id
       WHERE i.id = $1
-      AND ip.main_picture = TRUE`,
+      AND ip.main_picture = TRUE
+      LIMIT 1`,
       [id]
     );
 
