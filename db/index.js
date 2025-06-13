@@ -1,13 +1,8 @@
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { uuid } = require('uuidv4');
  
 const pool = new Pool({
-  // user: 'postgres',
-  // host: 'localhost',
-  // database: 'Daintree Store',
-  // password: 'postgres',
-  // port: 5432,
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false

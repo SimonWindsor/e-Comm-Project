@@ -16,9 +16,7 @@ const {getUserById, getUserByUsername, createUser} = require('./db/index.js');
 app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests from index.html
-app.use(cors(
-  
-));
+app.use(cors());
 
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
