@@ -11,7 +11,6 @@ const reviewsRouter = require('./reviews');
 apiRouter.use('/items', itemsRouter);
 apiRouter.use('/users', usersRouter);
 apiRouter.use('/cart', cartRouter);
-apiRouter.use('/checkout', checkoutRouter);
 apiRouter.use('/purchases', purchasesRouter);
 apiRouter.use('/reviews', reviewsRouter)
 

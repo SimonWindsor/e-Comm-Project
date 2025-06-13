@@ -41,4 +41,22 @@ purchasesRouter.get('/:id', isAuthenticated, async (req, res, next) => {
   }
 });
 
+// Creates a new purchase
+purchasesRouter.post('/', isAuthenticated, async (req, res, next) => {
+  try {
+    const newPurchase = await createPurchase(req.body);
+    if (newPurchase) {
+      await clearCart(newPurchase.id);
+      res.status(201).redirect(`/complete?purchaseId=${newPurchase.id}`);
+    } else {
+      res.status(500).json({
+        msg: 'Purchase not completed'
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 module.exports = purchasesRouter;

@@ -30,7 +30,7 @@ itemsRouter.get('/', async (req, res, next) => {
 });
 
 // Show item by id
-itemsRouter.get('id/:id', async (req, res, next) => {
+itemsRouter.get('/id/:id', async (req, res, next) => {
   try {
     const item = await getItemById(req.params.id);
     if (item) {
