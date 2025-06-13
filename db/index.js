@@ -177,7 +177,7 @@ const getItemById = async (id) => {
       `SELECT i.*, ip.file AS picture
       FROM items i JOIN item_pictures ip
       ON i.id = ip.item_id
-      WHERE id = $1
+      WHERE i.id = $1
       AND ip.main_picture = TRUE`,
       [id]
     );
