@@ -32,6 +32,7 @@ itemsRouter.get('/', async (req, res, next) => {
 // Show item by id
 itemsRouter.get('/id/:id', async (req, res, next) => {
   try {
+    console.log('Request received with ID:', req.params.id);
     const item = await getItemById(req.params.id);
     if (item) {
       res.status(200).send(item);
