@@ -12,9 +12,9 @@ const pool = new Pool({
 pool.connect();
 
 // For making database queries. Use async/await upon calling outside this module
-const query = (text, params, callback) => {
+const query = async (text, params, callback) => {
   try {
-    return pool.query(text, params, callback);
+    return await pool.query(text, params, callback);
   } catch (error) {
     console.error(error);
   }
@@ -87,7 +87,7 @@ const createUser = async (userBodyObject) => {
       let addressId = await findAddressId(address); // address is an object
 
       if(!addressId) {
-        address_id = await createAddress(address); // address is an object
+        addressId = await createAddress(address); // address is an object
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -115,7 +115,7 @@ const findAddressId = async (address) => {
   try {
     const queryText = `
       SELECT id FROM addresses
-      WHERE LOWER(number_street) = $1 AND LOWER(locality) = $2,
+      WHERE LOWER(number_street) = $1 AND LOWER(locality) = $2
       AND LOWER(state_province) = $3 AND LOWER(country) = $4
       AND LOWER(zipcode) = $5
     `;
@@ -313,7 +313,7 @@ const createReview = async (userId, reviewBodyObject) => {
     `;
 
     const newReview = await query(queryText, insertParams)
-    return newReview;
+    return newRevie.rows[0];
   } catch (error) {
     console.error(error);
     throw new Error('Error creating review');
@@ -326,7 +326,7 @@ const updateReview = async (reviewId, reviewBodyObject) => {
     const { rating, review } = reviewBodyObject;
     const updatedReview = await query(`
       UPDATE reviews
-      SET rating = $1 AND review = $2
+      SET rating = $1, review = $2
       WHERE id = $3
     `, [rating, review, reviewId]);
 
@@ -340,7 +340,7 @@ const updateReview = async (reviewId, reviewBodyObject) => {
 //Deletes an item review
 const deleteReview = async (reviewId) => {
   try {
-    await query('DELETE FRON reviews WHERE id = $1', [reviewId]);
+    await query('DELETE FROM reviews WHERE id = $1', [reviewId]);
   } catch (error) {
     console.error(error);
     throw new Error('Error deleting review');
@@ -394,13 +394,13 @@ const removeItemFromCart = async (userId, itemString) => {
 
 const updateCartItem = async (userId, oldValue, newValue) => {
   try {
-    const updateedItem = await query(
+    const updatedItem = await query(
       `UPDATE carts SET items = array_replace(items, $1, $2)
       WHERE user_id = $3
-      REUTRNING *`,
+      RETURNING *`,
       [oldValue, newValue, userId]
     );
-    return updateedItem;
+    return updatedItem;
   } catch (error) {
     console.error(error);
     throw new Error('Error updating items in cart');
@@ -427,7 +427,6 @@ const getPurchaseById = async (userId, purchaseId) => {
     if (result.rows.length === 0) {
       return false;
     } else {
-      console.error(error);
       return result.rows[0];
     }
   } catch (error) {
