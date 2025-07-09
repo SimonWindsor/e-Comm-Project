@@ -24,7 +24,7 @@ app.use(bodyParser.json());
 // Add middleware for handing seesion storage
 app.use(
   session({
-    secret: "fwababa$$%%31",
+    secret: process.env.SESSION_SECRET || "fwababa$$%%31",
     cookie: { 
       maxAge: 1000 * 60 * 60 * 24, // one day expiry
       httpOnly: true, 
@@ -35,9 +35,6 @@ app.use(
     store
   })
 );
-
-// Add middleware for the api and routes
-app.use('/', apiRouter);
 
 // Add passport middleware for logging in
 app.use(passport.initialize());
@@ -60,7 +57,7 @@ passport.deserializeUser(async (id, done) => {
     done(null, user);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    done(error);
   }
 });
 
@@ -83,7 +80,6 @@ passport.use(new LocalStrategy(
       return done(null, user);
     } catch (error) {
       console.error(error);
-      res.status(500).send('Internal Server Error');
       return done(error);
     }
   }
@@ -95,22 +91,25 @@ app.get('/', (req, res) => {
 
 app.get('/profile', (req, res) => {
   if (!req.user) {
-    // If user is not authenticated, redirect to login page
-    return res.redirect('/login');
-  } else {
-    res.send(req.user);
+    return res.status(401).json({ msg: 'Unauthorized' });
   }
+  res.json(req.user);
 });
 
-app.get("/logout", (req, res) => {
-  req.logout();
-  res.redirect("/login");
+app.get("/logout", (req, res, next) => {
+  req.logout(err => {
+    if (err) return next(err);
+    res.json({ msg: "Logged out successfully" });
+  });
 });
 
 app.post('/login',
-  passport.authenticate('local', { failureRedirect: '/login' }),
+  passport.authenticate('local'),
   (req, res) => {
-    res.redirect('profile');
+    res.json({
+      message: 'Login successful',
+      user: req.user
+    });
   }
 );
 
