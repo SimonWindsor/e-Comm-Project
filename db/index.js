@@ -25,13 +25,12 @@ const getClient = () => {
 };
 
 // Returns either a user object or a false value. Use async/await upon calling
-const getUserById = async (id) => {
+const getUserByEmail = async (email) => {
   try { 
     const result = await query(
-      `SELECT * FROM users WHERE id = $1`,
-      [id]
+      `SELECT * FROM users WHERE LOWER(email) = $1`,
+      [email.toLowerCase()]
     );
-
     if (result.rows.length === 0) {
       return false;
     } else {
@@ -39,26 +38,7 @@ const getUserById = async (id) => {
     }
   } catch (error) {
     console.error(error);
-    throw new Error('Error retrieving user by ID');
-  }
-};
-
-// Returns either a user object or a false value. Use async/await upon calling
-const getUserByUsername = async (username) => {
-  try {
-    const result = await query(
-      'SELECT * FROM users WHERE LOWER(username) = $1',
-      [username.toLowerCase()]
-    );
-
-    if (result.rows.length === 0) {
-      return false;
-    } else {
-      return result.rows[0];
-    }
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error retrieving user by username');
+    throw new Error('Error retrieving user by email');
   }
 };
 
@@ -67,7 +47,6 @@ const createUser = async (userBodyObject) => {
   try {
     // Destructure user object
     const {
-      username,
       email,
       firstName, 
       lastName, 
@@ -76,13 +55,11 @@ const createUser = async (userBodyObject) => {
       password
     } = userBodyObject;
     // Check if user already exists
-    const user = await getUserByUsername(username);
+    const user = await getUserByEmail(email);
 
     if (user) {
       throw new Error('User already exists');
     } else {
-      // Create user id - to be updated later
-      const id = uuid();
       // Obtain address id and create if it doesn't exist
       let addressId = await findAddressId(address); // address is an object
 
@@ -93,10 +70,10 @@ const createUser = async (userBodyObject) => {
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const queryText = `
-        INSERT INTO users (username, email, first_name, last_name, phone_number, address_id, id, password)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
+        INSERT INTO users (email, first_name, last_name, phone_number, address_id, password)
+        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
       `;
-      const insertParams = [username, email, firstName, lastName, phoneNumber, addressId, id, hashedPassword];
+      const insertParams = [email, firstName, lastName, phoneNumber, addressId, hashedPassword];
       const newUser = await query(
         queryText,
         insertParams
@@ -297,7 +274,7 @@ const getReview = async (reviewId) => {
 };
 
 // Creates a new item review
-const createReview = async (userId, reviewBodyObject) => {
+const createReview = async (userEmail, reviewBodyObject) => {
   try {
     const {
       itemId,
@@ -306,15 +283,15 @@ const createReview = async (userId, reviewBodyObject) => {
     } = reviewBodyObject;
     const id = uuid();
 
-    const insertParams = [id, itemId, userId, rating, review];
+    const insertParams = [id, itemId, userEmail, rating, review];
     const queryText = `
-      INSERT INTO reviews (id, item_id, user_id, rating, review, timestamp)
+      INSERT INTO reviews (id, item_id, user_email, rating, review, timestamp)
         VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
       RETURNING *
     `;
 
     const newReview = await query(queryText, insertParams)
-    return newRevie.rows[0];
+    return newReview.rows[0];
   } catch (error) {
     console.error(error);
     throw new Error('Error creating review');
@@ -349,13 +326,12 @@ const deleteReview = async (reviewId) => {
 };
 
 // Returns cart object or a false value. Use async/await upon calling
-const getCart = async (userId) => {
+const getCart = async (userEmail) => {
   try {
     const result = await query(`
-      SELECT * FROM carts WHERE user_id = $1`,
-      [userId]
+      SELECT * FROM carts WHERE user_email = $1`,
+      [userEmail]
     );
-
     if (result.rows.length === 0) {
       return false;
     } else {
@@ -367,12 +343,12 @@ const getCart = async (userId) => {
   }
 };
 
-const addItemToCart = async (userId, itemString) => {
+const addItemToCart = async (userEmail, itemString) => {
   try {
     const addedItem = await query(
-      `UPDATE carts SET items = array_append(items, $1) WHERE user_id = $2
+      `UPDATE carts SET items = array_append(items, $1) WHERE user_email = $2
       RETURNING *`,
-      [itemString, userId]
+      [itemString, userEmail]
     );
     return addedItem;
   } catch (error) {
@@ -381,11 +357,11 @@ const addItemToCart = async (userId, itemString) => {
   }
 };
 
-const removeItemFromCart = async (userId, itemString) => {
+const removeItemFromCart = async (userEmail, itemString) => {
   try {
     await query(
-      `UPDATE carts SET items = array_remove(items, $1) WHERE user_id = $2`,
-      [itemString, userId]
+      `UPDATE carts SET items = array_remove(items, $1) WHERE user_email = $2`,
+      [itemString, userEmail]
     );
   } catch (error) {
     console.error(error);
@@ -393,13 +369,13 @@ const removeItemFromCart = async (userId, itemString) => {
   }
 };
 
-const updateCartItem = async (userId, oldValue, newValue) => {
+const updateCartItem = async (userEmail, oldValue, newValue) => {
   try {
     const updatedItem = await query(
       `UPDATE carts SET items = array_replace(items, $1, $2)
-      WHERE user_id = $3
+      WHERE user_email = $3
       RETURNING *`,
-      [oldValue, newValue, userId]
+      [oldValue, newValue, userEmail]
     );
     return updatedItem;
   } catch (error) {
@@ -408,9 +384,9 @@ const updateCartItem = async (userId, oldValue, newValue) => {
   }
 };
 
-const clearCart = async(userId)  => {
+const clearCart = async(userEmail)  => {
   try {
-    await query(`DELETE FROM carts WHERE user_id = $1`, [userId]);
+    await query(`DELETE FROM carts WHERE user_email = $1`, [userEmail]);
   } catch (error) {
     console.error(error);
     throw new Error('Error clearing cart');
@@ -418,11 +394,11 @@ const clearCart = async(userId)  => {
 };
 
 // Returns a purchase with purchase Id, but only if user is currently logged in
-const getPurchaseById = async (userId, purchaseId) => {
+const getPurchaseById = async (userEmail, purchaseId) => {
   try {
     const result = await query(
-      `SELECT * FROM purchases WHERE id = $1 AND user_id = $2`,
-      [purchaseId, userId]
+      `SELECT * FROM purchases WHERE id = $1 AND user_email = $2`,
+      [purchaseId, userEmail]
     );
 
     if (result.rows.length === 0) {
@@ -445,7 +421,7 @@ const createPurchase = async (purchaseBodyObject) => {
     } = purchaseBodyObject;
 
     // destructure cart object
-    const {userId, items} = cart;
+    const {userEmail, items} = cart;
 
     // Create purchase id
     const id = uuid();
@@ -458,10 +434,10 @@ const createPurchase = async (purchaseBodyObject) => {
 
     const queryText = `
       INSERT INTO purchases (id, delivery_address_id,
-        user_id, items, first_name, last_name, timestamp)
+        user_email, items, first_name, last_name, timestamp)
       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP) RETURNING *
     `;
-    const insertParams = [id, addressId, userId, items, firstName, lastName];
+    const insertParams = [id, addressId, userEmail, items, firstName, lastName];
     const newPurchase = await query(queryText, insertParams);
 
     const purchaseReturn = newPurchase.rows[0];
@@ -475,8 +451,7 @@ const createPurchase = async (purchaseBodyObject) => {
 module.exports = {
   query,
   getClient,
-  getUserById,
-  getUserByUsername,
+  getUserByEmail,
   createUser,
   getItemById,
   getAllItemPictures,

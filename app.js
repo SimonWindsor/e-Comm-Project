@@ -10,7 +10,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator'); // For sanitizing inputs
 const helmet = require("helmet"); // For additional security
-const {getUserById, getUserByUsername, createUser} = require('./db/index.js');
+const {getUserByEmail, getUserByEmail, createUser} = require('./db/index.js');
 	  
 
 app.set('port', process.env.PORT || 3000);
@@ -47,13 +47,13 @@ app.use(helmet());
 
 // For serializing the user
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user.email);
 });
 
 // Deserializing user
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (email, done) => {
   try {
-    const user = await getUserById(id);
+    const user = await getUserByEmail(email);
     done(null, user);
   } catch (error) {
     console.error(error);
@@ -63,9 +63,10 @@ passport.deserializeUser(async (id, done) => {
 
 // Adding passport's local strategy
 passport.use(new LocalStrategy(
-  async function (username, password, done) {
+  { usernameField: 'email' },
+  async function (email, password, done) {
     try {
-      const user = await getUserByUsername(username);
+      const user = await getUserByEmail(email);
 
       if (!user) {
         return done(null, false);
@@ -119,7 +120,7 @@ app.post("/register", async (req, res) => {
     const newUser = await createUser(req.body);
 
     if (newUser) {
-      req.session.userId = newUser.id;
+      req.session.userEmail = newUser.email;
 
       res.status(201).json({
         msg: "New user created",
