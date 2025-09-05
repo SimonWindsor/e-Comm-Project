@@ -35,14 +35,11 @@ itemsRouter.get('/id/:id', async (req, res, next) => {
   try {
     const result = await getItemById(req.params.id);
     if (result) {
-      console.log('got it!')
       res.status(200).send(result);
     } else {
-      console.log('not got it!')
       res.status(404).send('404 Item not found!');
     }
   } catch (error) {
-    console.log('still notgot it!')
     console.error(error);
     res.status(500).send('Internal Server Error');
   }

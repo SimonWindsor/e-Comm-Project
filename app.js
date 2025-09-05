@@ -90,11 +90,25 @@ app.get('/', (req, res) => {
   res.send('Welcome to Daintree!');
 });
 
-app.get('/profile', (req, res) => {
+app.get('/user', (req, res) => {
   if (!req.user) {
     return res.status(401).json({ msg: 'Unauthorized' });
   }
   res.json(req.user);
+});
+
+app.get('/user/:email', async (req, res) => {
+  try {
+    const user = await getUserByEmail(req.params.email);
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    const { password, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: 'Internal Server Error' });
+  }
 });
 
 app.get("/logout", (req, res, next) => {
