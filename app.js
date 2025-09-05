@@ -10,7 +10,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator'); // For sanitizing inputs
 const helmet = require("helmet"); // For additional security
-const {getUserByEmail, getUserByEmail, createUser} = require('./db/index.js');
+const {getUserByEmail, createUser} = require('./db/index.js');
 	  
 
 app.set('port', process.env.PORT || 3000);

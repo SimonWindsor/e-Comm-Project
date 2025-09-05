@@ -1,4 +1,4 @@
-const usersRouter = require('express').Router();
+onst usersRouter = require('express').Router();
 const {getUserByUsername} = require('../db/index.js');
 
 // Shows user by username. This is likely to only be for admins
