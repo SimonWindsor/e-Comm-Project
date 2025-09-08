@@ -31,7 +31,7 @@ app.use(
     cookie: { 
       maxAge: 1000 * 60 * 60 * 24, // one day expiry
       httpOnly: true, 
-      secure: false // change to true when deploying 
+      secure: true 
     }, 
     saveUninitialized: false,
     resave: false,
@@ -117,12 +117,16 @@ app.get('/user/:email', async (req, res) => {
 app.get("/logout", (req, res, next) => {
   req.logout(err => {
     if (err) return next(err);
-    res.json({ msg: "Logged out successfully" });
+    req.session.destroy(err => {
+      if (err) return next(err);
+      res.clearCookie("connect.sid");
+      res.json({ msg: "Logged out successfully" });
+    });
   });
 });
 
 app.post('/login', async (req, res, next) => {
-  passport.authenticate('local', (err, user, info) => {
+  passport.authenticate('local', (err, user) => {
     if (err) {
       console.error(err);
       return next(err);
