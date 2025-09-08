@@ -16,7 +16,10 @@ const {getUserByEmail, createUser} = require('./db/index.js');
 app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests from index.html
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3001", // change to netlify address later
+  credentials: true
+}));
 
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
@@ -69,13 +72,13 @@ passport.use(new LocalStrategy(
       const user = await getUserByEmail(email);
 
       if (!user) {
-        return done(null, false);
+        return done(null, false, { message: 'User not found' });
       }
 
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (!passwordMatch) {
-        return done(null, false);
+        return done(null, false, { message: 'User not found' });
       }
 
       return done(null, user);
@@ -118,15 +121,28 @@ app.get("/logout", (req, res, next) => {
   });
 });
 
-app.post('/login',
-  passport.authenticate('local'),
-  (req, res) => {
-    res.json({
-      message: 'Login successful',
-      user: req.user
+app.post('/login', async (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      console.error(err);
+      return next(err);
+    }
+    if (!user) {
+      return res.status(401).json({ 
+        success: false, 
+      });
+    }
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+      const { password, ...safeUser } = user;
+      return res.json({ 
+        success: true, 
+        message: 'Login successful', 
+        user: safeUser 
+      });
     });
-  }
-);
+  })(req, res, next);
+});
 
 app.post("/register", async (req, res) => {
   try {
