@@ -3,17 +3,22 @@ const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require("express-session");
-const store = new session.MemoryStore();
+const pgSession = require("connect-pg-simple")(session);
 const apiRouter = require('./routes/api');
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator'); // For sanitizing inputs
 const helmet = require("helmet"); // For additional security
-const {getUserByEmail, createUser} = require('./db/index.js');
+const {pool, getUserByEmail, createUser} = require('./db/index.js');
 	  
 
 app.set('port', process.env.PORT || 3000);
+
+const store = new pgSession({
+  pool, 
+  tableName: 'session'
+});
 
 // Add middleware for handling CORS requests from index.html
 app.use(cors({
@@ -40,14 +45,14 @@ app.use(
   })
 );
 
+// Add the middleware for addional security with http headers
+app.use(helmet());
+
 // Add passport middleware for logging in
 app.use(passport.initialize());
 
 // Add the middleware to implement a session with passport
 app.use(passport.session());
-
-// Add the middleware for addional security with http headers
-app.use(helmet());
 
 // For serializing the user
 passport.serializeUser((user, done) => {

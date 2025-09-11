@@ -449,6 +449,7 @@ const createPurchase = async (purchaseBodyObject) => {
 };
 
 module.exports = {
+  pool,
   query,
   getClient,
   getUserByEmail,
