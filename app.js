@@ -17,7 +17,7 @@ app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests from index.html
 app.use(cors({
-  origin: "http://localhost:3001", // change to netlify address later
+  origin: "https://https://daintreestore.netlify.app/", // change to netlify address later
   credentials: true
 }));
 
@@ -79,7 +79,7 @@ passport.use(new LocalStrategy(
       const passwordMatch = await bcrypt.compare(password, user.password);
 
       if (!passwordMatch) {
-        return done(null, false, { message: 'User not found' });
+        return done(null, false, { message: 'Incorrect password' });
       }
 
       return done(null, user);
