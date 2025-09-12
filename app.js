@@ -131,26 +131,29 @@ app.get("/logout", (req, res, next) => {
   });
 });
 
-app.post('/login', async (req, res, next) => {
-  passport.authenticate('local', (err, user) => {
-    if (err) {
-      console.error(err);
-      return next(err);
-    }
-    if (!user) {
-      return res.status(401).json({ 
-        success: false, 
+app.post('/login', (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    try {
+      if (err) throw err;
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: info?.message || 'Invalid email or password'
+        });
+      }
+      req.logIn(user, (err) => {
+        if (err) throw err;
+        const { password, ...safeUser } = user;
+        return res.json({
+          success: true,
+          message: 'Login successful',
+          user: safeUser
+        });
       });
+    } catch (error) {
+      console.error('[Login error]', error);
+      return res.status(500).json({ success: false, message: 'Internal server error' });
     }
-    req.logIn(user, (err) => {
-      if (err) return next(err);
-      const { password, ...safeUser } = user;
-      return res.json({ 
-        success: true, 
-        message: 'Login successful', 
-        user: safeUser 
-      });
-    });
   })(req, res, next);
 });
 
