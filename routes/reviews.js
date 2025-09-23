@@ -1,5 +1,6 @@
 const reviewsRouter = require('express').Router();
 const {query, getReview, createReview, updateReview, deleteReview} = require('../db/index.js');
+const { validateReview, handleValidationErrors } = require('../middleware/validation');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -21,7 +22,7 @@ reviewsRouter.get('/items/:itemId', async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
@@ -42,7 +43,7 @@ reviewsRouter.get('/users/:username', async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
@@ -57,19 +58,18 @@ reviewsRouter.get('/:reviewId', async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
 // Posts a new review
-reviewsRouter.post('/', isAuthenticated, async (req, res, next) => {
+reviewsRouter.post('/', isAuthenticated, validateReview, handleValidationErrors, async (req, res, next) => {
   try {
-    const newReview = await createReview(req.user.id, req.body);
-    res.redirect(`/items?itemId=${newReview.id}`);
+    const newReview = await createReview(req.user.email, req.body);
     res.status(201).send(newReview);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
@@ -80,7 +80,7 @@ reviewsRouter.put('/:reviewId', isAuthenticated, async(req, res, next) => {
     res.status(200).send(updatedReview);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
@@ -91,7 +91,7 @@ reviewsRouter.delete('/:reviewId', isAuthenticated, async(req, res, next) => {
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 

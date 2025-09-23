@@ -25,7 +25,7 @@ itemsRouter.get('/', async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
@@ -41,22 +41,22 @@ itemsRouter.get('/id/:id', async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
 // Get all an item's pictures
 itemsRouter.get('/pictures/:id', async (req, res, next) => {
   try {
-    const result = await getAllItemPictures(req.params.id);
-    if (item) {
-      res.status(200).send(result);
+    const pictures = await getAllItemPictures(req.params.id);
+    if (pictures) {
+      res.status(200).send(pictures);
     } else {
       res.status(404).send('404 Pictures not found!');
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
@@ -71,7 +71,7 @@ itemsRouter.get('/allcategories', async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
@@ -86,7 +86,7 @@ itemsRouter.get('/categories/:category', async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 

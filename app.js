@@ -11,6 +11,8 @@ const bcrypt = require('bcrypt');
 const { check, validationResult } = require('express-validator'); // For sanitizing inputs
 const helmet = require("helmet"); // For additional security
 const {pool, getUserByEmail, createUser} = require('./db/index.js');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { validateRegistration, validateLogin, handleValidationErrors } = require('./middleware/validation');
 	  
 
 app.set('port', process.env.PORT || 3000);
@@ -131,7 +133,7 @@ app.get("/logout", (req, res, next) => {
   });
 });
 
-app.post('/login', (req, res, next) => {
+app.post('/login', validateLogin, handleValidationErrors, (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     try {
       if (err) throw err;
@@ -157,31 +159,40 @@ app.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
-app.post("/register", async (req, res) => {
+app.post("/register", validateRegistration, handleValidationErrors, async (req, res) => {
   try {
     // Use whole req.body object as parameter, createUser() will destructure
     const newUser = await createUser(req.body);
 
     if (newUser) {
       req.session.userEmail = newUser.email;
+      const { password, ...safeUser } = newUser;
 
       res.status(201).json({
+        success: true,
         msg: "New user created",
-        newUser
+        user: safeUser
       });
     } else {
       res.status(500).json({
+        success: false,
         msg: "New user was not created"
       });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error); // Pass error to error handler middleware
   }
 });
 
 // Add middleware for the api and routes
 app.use('/', apiRouter);
+
+// 404 handler for undefined routes
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 app.listen(3000, () => {
   console.log('Express server started at port 3000');

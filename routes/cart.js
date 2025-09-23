@@ -1,5 +1,6 @@
 const cartRouter = require('express').Router();
 const {getCart, addItemToCart, removeItemFromCart, updateCartItem, clearCart} = require('../db/index.js');
+const { validateCartItem, handleValidationErrors } = require('../middleware/validation');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -13,7 +14,7 @@ const isAuthenticated = (req, res, next) => {
 // Get current cart contents
 cartRouter.get('/', isAuthenticated, async (req, res, next) => {
   try {
-    const cart = await getCart(req.user.id);
+    const cart = await getCart(req.user.email);
     if (cart) {
       res.status(200).send(cart);
     } else {
@@ -21,51 +22,51 @@ cartRouter.get('/', isAuthenticated, async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
 // Add item to cart
 cartRouter.post('/:id', isAuthenticated, async (req, res, next) => {
   try {
-    const addedItem = await addItemToCart(req.user.id, req.body.itemString);
+    const addedItem = await addItemToCart(req.user.email, req.body.itemString);
     res.status(201).send(addedItem);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
-// Modify item quanity in cart
-cartRouter.put('/', isAuthenticated, async (req, res, next) => {
+// Modify item quantity in cart
+cartRouter.put('/', isAuthenticated, validateCartItem, handleValidationErrors, async (req, res, next) => {
   try {
-    const updatedItem = await updateCartItem(req.user.id, req.body.oldVAlue, req.body.newValue);
+    const updatedItem = await updateCartItem(req.user.email, req.body.oldValue, req.body.newValue);
     res.status(200).send(updatedItem);
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
 // Remove item from cart
 cartRouter.delete('/', isAuthenticated, async (req, res, next) => {
   try {
-    await removeItemFromCart(req.user.id, req.body.item);
+    await removeItemFromCart(req.user.email, req.body.item);
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
 // Clear cart
 cartRouter.delete('/clear', isAuthenticated, async (req, res, next) => {
   try {
-    await clearCart(req.user.id);
+    await clearCart(req.user.email);
     res.status(204).send();
   } catch (error) {
     console.error(error);
-    res.status(500).send('Internal Server Error');
+    next(error);
   }
 });
 
