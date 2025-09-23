@@ -159,33 +159,6 @@ app.post('/login', validateLogin, handleValidationErrors, (req, res, next) => {
   })(req, res, next);
 });
 
-// Register endpoint
-app.post("/register", validateRegistration, handleValidationErrors, async (req, res) => {
-  try {
-    // Use whole req.body object as parameter, createUser() will destructure
-    const newUser = await createUser(req.body);
-
-    if (newUser) {
-      req.session.userEmail = newUser.email;
-      const { password, ...safeUser } = newUser;
-
-      res.status(201).json({
-        success: true,
-        msg: "New user created",
-        user: safeUser
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        msg: "New user was not created"
-      });
-    }
-  } catch (error) {
-    console.error(error);
-    next(error); // Pass error to error handler middleware
-  }
-});
-
 // Signup endpoint (alias for register to match frontend)
 app.post("/signup", validateRegistration, handleValidationErrors, async (req, res) => {
   try {
