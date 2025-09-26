@@ -17,12 +17,7 @@ const { validateRegistration, validateLogin, handleValidationErrors } = require(
 
 app.set('port', process.env.PORT || 3000);
 
-const store = new pgSession({
-  pool, 
-  tableName: 'session'
-});
-
-// Add middleware for handling CORS requests from index.html
+// Add middleware for handling CORS requests
 app.use(cors({
   origin: "https://daintreestore.netlify.app", // change to local host for local development
   credentials: true
@@ -31,9 +26,13 @@ app.use(cors({
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
 
-// Add middleware for handing session storage
+// Add middleware for handing session storage (using memory store temporarily)
 app.use(
   session({
+    store: new pgSession({
+      pool, 
+      tableName: 'session'
+    }),
     secret: process.env.SESSION_SECRET || "fwababa$$%%31",
     cookie: { 
       maxAge: 1000 * 60 * 60 * 24, // one day expiry
@@ -42,8 +41,8 @@ app.use(
       sameSite: 'none'
     }, 
     saveUninitialized: false,
-    resave: false,
-    store
+    resave: false
+    // store // Commented out temporarily
   })
 );
 
