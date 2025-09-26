@@ -105,6 +105,7 @@ app.get('/', (req, res) => {
   res.send('Welcome to Daintree!');
 });
 
+// For getting current user
 app.get('/user', (req, res) => {
   if (!req.user) {
     return res.status(401).json({ msg: 'Unauthorized' });
@@ -112,6 +113,7 @@ app.get('/user', (req, res) => {
   res.json(req.user);
 });
 
+// For getting user by email
 app.get('/user/:email', async (req, res) => {
   try {
     const user = await getUserByEmail(req.params.email);
@@ -126,7 +128,8 @@ app.get('/user/:email', async (req, res) => {
   }
 });
 
-app.get("/logout", (req, res, next) => {
+// For logging out
+app.post("/logout", (req, res, next) => {
   req.logout(err => {
     if (err) return next(err);
     req.session.destroy(err => {
@@ -137,6 +140,7 @@ app.get("/logout", (req, res, next) => {
   });
 });
 
+// For logging in
 app.post('/login', validateLogin, handleValidationErrors, (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     try {
