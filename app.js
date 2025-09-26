@@ -26,6 +26,9 @@ app.use(cors({
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
 
+// Trust the first proxy (required for secure cookies behind Railway/Heroku proxies)
+app.set('trust proxy', 1);
+
 // Add middleware for handing session storage (using memory store temporarily)
 app.use(
   session({
