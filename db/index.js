@@ -325,17 +325,17 @@ const deleteReview = async (reviewId) => {
   }
 };
 
-// Returns cart object or a false value. Use async/await upon calling
+// Returns cart row or a false value. Use async/await upon calling
 const getCart = async (userEmail) => {
   try {
-    const result = await query(`
-      SELECT * FROM carts WHERE user_email = $1`,
+    const result = await query(
+      `SELECT cart FROM carts WHERE user_email = $1`,
       [userEmail]
     );
     if (result.rows.length === 0) {
       return false;
     } else {
-      return result.rows[0];
+      return result.rows[0].cart;
     }
   } catch (error) {
     console.error(error);
@@ -343,44 +343,20 @@ const getCart = async (userEmail) => {
   }
 };
 
-const addItemToCart = async (userEmail, itemString) => {
+const upsertCart = async (userEmail, cartObject) => {
   try {
-    const addedItem = await query(
-      `UPDATE carts SET items = array_append(items, $1) WHERE user_email = $2
-      RETURNING *`,
-      [itemString, userEmail]
+    const result = await query(
+      `INSERT INTO carts (user_email, cart)
+        VALUES ($1, $2::jsonb)
+       ON CONFLICT (user_email)
+       DO UPDATE SET cart = EXCLUDED.cart
+       RETURNING cart`,
+      [userEmail, JSON.stringify(cartObject)]
     );
-    return addedItem;
+    return result.rows[0].cart;
   } catch (error) {
     console.error(error);
-    throw new Error('Error adding items to cart');
-  }
-};
-
-const removeItemFromCart = async (userEmail, itemString) => {
-  try {
-    await query(
-      `UPDATE carts SET items = array_remove(items, $1) WHERE user_email = $2`,
-      [itemString, userEmail]
-    );
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error removing items to cart');
-  }
-};
-
-const updateCartItem = async (userEmail, oldValue, newValue) => {
-  try {
-    const updatedItem = await query(
-      `UPDATE carts SET items = array_replace(items, $1, $2)
-      WHERE user_email = $3
-      RETURNING *`,
-      [oldValue, newValue, userEmail]
-    );
-    return updatedItem;
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error updating items in cart');
+    throw new Error('Error upserting cart');
   }
 };
 
@@ -463,10 +439,9 @@ module.exports = {
   updateReview,
   deleteReview,
   getCart,
-  addItemToCart,
+  getCart,
+  upsertCart,
   clearCart,
-  removeItemFromCart,
-  updateCartItem,
   getPurchaseById,
   createPurchase
 };

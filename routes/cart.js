@@ -1,6 +1,5 @@
 const cartRouter = require('express').Router();
-const {getCart, addItemToCart, removeItemFromCart, updateCartItem, clearCart} = require('../db/index.js');
-const { validateCartItem, handleValidationErrors } = require('../middleware/validation');
+const {getCart, upsertCart, clearCart} = require('../db/index.js');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
@@ -15,51 +14,38 @@ const isAuthenticated = (req, res, next) => {
 cartRouter.get('/', isAuthenticated, async (req, res, next) => {
   try {
     const cart = await getCart(req.user.email);
-    if (cart) {
-      res.status(200).send(cart);
-    } else {
-      res.status(404).send('404 Cart not found');
-    }
+    res.status(200).json(cart || { items: [] });
   } catch (error) {
     console.error(error);
     next(error);
   }
 });
 
-// Add item to cart
-cartRouter.post('/:id', isAuthenticated, async (req, res, next) => {
+// Create cart for the first time (or no-op if exists)
+cartRouter.post('/', isAuthenticated, async (req, res, next) => {
   try {
-    const addedItem = await addItemToCart(req.user.email, req.body.itemString);
-    res.status(201).send(addedItem);
+    const payload = req.body && typeof req.body === 'object' ? req.body : {};
+    const cart = await upsertCart(req.user.email, payload);
+    res.status(201).json(cart);
   } catch (error) {
     console.error(error);
     next(error);
   }
 });
 
-// Modify item quantity in cart
-cartRouter.put('/', isAuthenticated, validateCartItem, handleValidationErrors, async (req, res, next) => {
+// Replace entire cart
+cartRouter.put('/', isAuthenticated, async (req, res, next) => {
   try {
-    const updatedItem = await updateCartItem(req.user.email, req.body.oldValue, req.body.newValue);
-    res.status(200).send(updatedItem);
+    const payload = req.body && typeof req.body === 'object' ? req.body : {};
+    const cart = await upsertCart(req.user.email, payload);
+    res.status(200).json(cart);
   } catch (error) {
     console.error(error);
     next(error);
   }
 });
 
-// Remove item from cart
-cartRouter.delete('/', isAuthenticated, async (req, res, next) => {
-  try {
-    await removeItemFromCart(req.user.email, req.body.item);
-    res.status(204).send();
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
-});
-
-// Clear cart
+// Clear cart (delete row)
 cartRouter.delete('/clear', isAuthenticated, async (req, res, next) => {
   try {
     await clearCart(req.user.email);
