@@ -19,8 +19,11 @@ app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests
 app.use(cors({
-  origin: "https://daintreestore.netlify.app", // change to local host for local development
-  credentials: true
+  origin:
+    process.env.NODE_ENV === "production"
+      ? "https://daintreestore.netlify.app"
+      : "http://localhost:3000",
+  credentials: true,
 }));
 
 // Add middware for parsing request bodies here:
