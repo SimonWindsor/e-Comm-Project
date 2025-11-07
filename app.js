@@ -22,7 +22,7 @@ app.use(cors({
   origin:
     process.env.NODE_ENV === "production"
       ? "https://daintreestore.netlify.app"
-      : "http://localhost:3000",
+      : "http://localhost:3001",
   credentials: true,
 }));
 
