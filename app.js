@@ -39,7 +39,7 @@ app.use(
       pool, 
       tableName: 'session'
     }),
-    secret: process.env.SESSION_SECRET || "fwababa$$%%31",
+    secret: process.env.SESSION_SECRET || "dts_snw_2025",
     cookie: { 
       maxAge: 1000 * 60 * 60 * 24, // one day expiry
       httpOnly: true, 
