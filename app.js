@@ -162,65 +162,48 @@ app.post("/logout", (req, res, next) => {
 // For logging in
 app.post('/login', validateLogin, handleValidationErrors, (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
-    try {
-      if (err) throw err;
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: info?.message || 'Invalid email or password'
-        });
-      }
-      req.logIn(user, (err) => {
-        if (err) throw err;
-        const { password, ...safeUser } = user;
-        
-        // Debug: Log session info
-        console.log('🔐 Session ID after login:', req.sessionID);
-        console.log('📋 Session data:', req.session);
-        
-        // Manually set cookie headers for debugging
-        res.json({
-          success: true,
-          message: 'Login successful',
-          user: safeUser,
-          sessionId: req.sessionID,
-          _debug: {
-            sessionCreated: true,
-            cookieShouldBeSet: true
-          }
-        });
+    if (err) return next(err);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: info?.message || 'Invalid email or password'
       });
-    } catch (error) {
-      console.error('[Login error]', error);
-      return res.status(500).json({ success: false, message: 'Internal server error' });
     }
+
+    req.logIn(user, (err) => {
+      if (err) return next(err);
+
+      // Passport stores serialized user automatically in req.session.passport.user
+      const { password, ...safeUser } = user;
+
+      return res.json({
+        success: true,
+        message: 'Login successful',
+        user: safeUser
+      });
+    });
   })(req, res, next);
 });
 
 // Signup endpoint (alias for register to match frontend)
-app.post("/signup", validateRegistration, handleValidationErrors, async (req, res) => {
+app.post('/signup', validateRegistration, handleValidationErrors, async (req, res, next) => {
   try {
-    // Use whole req.body object as parameter, createUser() will destructure
     const newUser = await createUser(req.body);
+    if (!newUser) return res.status(500).json({ success: false, msg: "New user was not created" });
 
-    if (newUser) {
-      req.session.userEmail = newUser.email;
+    // Log in immediately after signup
+    req.logIn(newUser, (err) => {
+      if (err) return next(err);
+
       const { password, ...safeUser } = newUser;
-
       res.status(201).json({
         success: true,
         msg: "New user created",
         user: safeUser
       });
-    } else {
-      res.status(500).json({
-        success: false,
-        msg: "New user was not created"
-      });
-    }
-  } catch (error) {
-    console.error(error);
-    next(error); // Pass error to error handler middleware
+    });
+  } catch (err) {
+    next(err);
   }
 });
 

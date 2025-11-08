@@ -9,8 +9,6 @@ const pool = new Pool({
     : false
 });
 
-// pool.connect();
-
 // For making database queries. Use async/await upon calling outside this module
 const query = async (text, params, callback) => {
   try {
