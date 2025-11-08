@@ -3,9 +3,7 @@ const bcrypt = require('bcryptjs');
 const { uuid } = require('uuidv4');
  
 const pool = new Pool({
-  connectionString: process.env.NODE_ENV === "production"
-    ? process.env.DATABASE_URL
-    : 'postgresql://localhost:5432/your_local_db_name',
+  connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" 
     ? { rejectUnauthorized: false }
     : false
@@ -431,7 +429,6 @@ module.exports = {
   createReview,
   updateReview,
   deleteReview,
-  getCart,
   getCart,
   upsertCart,
   clearCart,
