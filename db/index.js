@@ -247,15 +247,6 @@ const getItemsFromSearch = async (searchTerms) => {
   }
 };
 
-// Adds items into database. This is only for admins!
-//add later
-
-// Modifies items in database. This is only for admins!
-//add later
-
-// Removes items from database. This is only for admins!
-//add later
-
 // Returns either an review object or a false value. Use async/await upon calling
 const getReview = async (reviewId) => {
   try {

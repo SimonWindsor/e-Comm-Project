@@ -12,7 +12,7 @@ const isAuthenticated = (req, res, next) => {
 };
 
 // Show all item's review by item id
-reviewsRouter.get('/items/:itemId', async (req, res, next) => {
+reviewsRouter.get('/:itemId', async (req, res, next) => {
   try {
     const result = await query('SELECT * FROM reviews WHERE item_id = $1', [req.params.itemId]);
     if (result.rows.length > 0) {
@@ -26,8 +26,8 @@ reviewsRouter.get('/items/:itemId', async (req, res, next) => {
   }
 });
 
-// Show all user's reviews by username
-reviewsRouter.get('/users/:username', async (req, res, next) => {
+// Show all user's reviews
+reviewsRouter.get('/', async (req, res, next) => {
   try {
     const queryText = `
       SELECT reviews.*, users.username

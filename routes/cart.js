@@ -46,7 +46,7 @@ cartRouter.put('/', isAuthenticated, async (req, res, next) => {
 });
 
 // Clear cart (delete row)
-cartRouter.delete('/clear', isAuthenticated, async (req, res, next) => {
+cartRouter.delete('/', isAuthenticated, async (req, res, next) => {
   try {
     await clearCart(req.user.email);
     res.status(204).send();
