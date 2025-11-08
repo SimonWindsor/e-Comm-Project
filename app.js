@@ -61,7 +61,8 @@ app.use(
       maxAge: 1000 * 60 * 60 * 24, // one day expiry
       httpOnly: true, 
       secure: true,
-      sameSite: 'none'
+      sameSite: 'none',
+      partitioned: true
     }, 
     saveUninitialized: false,
     resave: false
