@@ -18,18 +18,17 @@ const { validateRegistration, validateLogin, handleValidationErrors } = require(
 app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests
-const allowedOrigins = [
-  "https://daintreestore.netlify.app",
-  "http://localhost:3000", // React dev server (default)
-  "http://localhost:3001", // In case you run React here instead
-];
-
-app.use(
-  cors({
+app.use(cors({
     origin: function (origin, callback) {
-      // Allow requests like Postman (no origin)
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
+      const allowedOrigins = [
+        "https://daintreestore.netlify.app",
+        "http://localhost:3000",
+        "http://localhost:3001",
+      ];
+      
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -38,6 +37,8 @@ app.use(
       }
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
   })
 );
 
