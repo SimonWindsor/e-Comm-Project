@@ -233,7 +233,6 @@ app.use(notFoundHandler);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-console.log(`Express server started at port ${PORT}`);
+app.listen(app.get('port'), '0.0.0.0', () => {
+  console.log(`Express server started at port ${app.get('port')}`);
 });
