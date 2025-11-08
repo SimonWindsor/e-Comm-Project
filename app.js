@@ -51,10 +51,10 @@ app.set('trust proxy', 1);
 // Add middleware for handing session storage (using memory store temporarily)
 app.use(
   session({
-    store: new pgSession({
-      pool, 
-      tableName: 'session'
-    }),
+    // store: new pgSession({
+    //   pool, 
+    //   tableName: 'session'
+    // }),
     name: 'connect.sid',
     secret: process.env.SESSION_SECRET || "dts_snw_2025",
     cookie: { 
@@ -65,7 +65,6 @@ app.use(
     }, 
     saveUninitialized: false,
     resave: false
-    // store // Commented out temporarily
   })
 );
 
@@ -174,10 +173,21 @@ app.post('/login', validateLogin, handleValidationErrors, (req, res, next) => {
       req.logIn(user, (err) => {
         if (err) throw err;
         const { password, ...safeUser } = user;
-        return res.json({
+        
+        // Debug: Log session info
+        console.log('🔐 Session ID after login:', req.sessionID);
+        console.log('📋 Session data:', req.session);
+        
+        // Manually set cookie headers for debugging
+        res.json({
           success: true,
           message: 'Login successful',
-          user: safeUser
+          user: safeUser,
+          sessionId: req.sessionID,
+          _debug: {
+            sessionCreated: true,
+            cookieShouldBeSet: true
+          }
         });
       });
     } catch (error) {
