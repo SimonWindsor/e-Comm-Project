@@ -19,7 +19,7 @@ app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests
 app.use(cors({
-  origin: 'https://your-frontend.netlify.app',
+  origin: 'https://daintreestore.netlify.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
