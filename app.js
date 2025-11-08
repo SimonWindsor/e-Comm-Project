@@ -25,8 +25,7 @@ app.use(cors({
 
       const allowedOrigins = [
         "https://daintreestore.netlify.app",
-        "http://localhost:3000",
-        "http://localhost:3001",
+        "http://localhost:3001"
       ];
       
       if (allowedOrigins.includes(origin)) {
@@ -51,10 +50,10 @@ app.set('trust proxy', 1);
 // Add middleware for handing session storage (using memory store temporarily)
 app.use(
   session({
-    // store: new pgSession({
-    //   pool, 
-    //   tableName: 'session'
-    // }),
+    store: new pgSession({
+      pool, 
+      tableName: 'session'
+    }),
     name: 'connect.sid',
     secret: process.env.SESSION_SECRET || "dts_snw_2025",
     cookie: { 
