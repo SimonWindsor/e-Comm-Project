@@ -19,27 +19,11 @@ app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests
 app.use(cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-
-      const allowedOrigins = [
-        "https://daintreestore.netlify.app",
-        "http://localhost:3001"
-      ];
-      
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.warn(`❌ Blocked by CORS: ${origin}`);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
-  })
-);
+  origin: 'https://your-frontend.netlify.app',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
+}));
 
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json());
@@ -55,13 +39,12 @@ app.use(
       tableName: 'session'
     }),
     name: 'connect.sid',
-    secret: process.env.SESSION_SECRET || "dts_snw_2025",
+    secret: process.env.SESSION_SECRET || "secret_dts_snw_2025_secret",
     cookie: { 
       maxAge: 1000 * 60 * 60 * 24, // one day expiry
       httpOnly: true, 
       secure: true,
-      sameSite: 'none',
-      partitioned: true
+      sameSite: 'none'
     }, 
     saveUninitialized: false,
     resave: false
