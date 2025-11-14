@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -15,7 +17,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { validateRegistration, validateLogin, handleValidationErrors } = require('./middleware/validation');
 	  
 
-app.set('port', process.env.PORT || 3000);
+//app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests
 app.use(cors({
