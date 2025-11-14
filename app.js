@@ -52,9 +52,13 @@ app.use(
 );
 
 // Add the middleware for addional security with http headers
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-}));
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // Add passport middleware for logging in
 app.use(passport.initialize());
