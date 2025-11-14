@@ -19,7 +19,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { validateRegistration, validateLogin, handleValidationErrors } = require('./middleware/validation');
 	  
 
-//app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3000);
 
 // Add middleware for handling CORS requests
 app.use(cors({
@@ -207,5 +207,11 @@ app.use(notFoundHandler);
 // Global error handler (must be last)
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+// new way of doing port
+// const PORT = process.env.PORT || 3000;
+// app.listen(PORT, () => console.log(`Server running on ${PORT}`));
+
+// old way of doing port
+app.listen(3000, () => {
+  console.log('Express server started at port 3000');
+});
