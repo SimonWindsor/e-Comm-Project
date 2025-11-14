@@ -4,9 +4,9 @@ const { uuid } = require('uuidv4');
  
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production" 
-    ? { rejectUnauthorized: false }
-    : false
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // For making database queries. Use async/await upon calling outside this module
