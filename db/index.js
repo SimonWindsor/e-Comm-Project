@@ -1,7 +1,3 @@
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
-
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { uuid } = require('uuidv4');
