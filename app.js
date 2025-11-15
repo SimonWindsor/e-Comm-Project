@@ -1,6 +1,4 @@
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();
-}
+if (process.env.NODE_ENV !== "production") require("dotenv").config();
 
 const express = require('express');
 const app = express();
@@ -8,210 +6,115 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
-const apiRouter = require('./routes/api');
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcryptjs');
-const { check, validationResult } = require('express-validator'); // For sanitizing inputs
-const helmet = require("helmet"); // For additional security
-const {pool, getUserByEmail, createUser} = require('./db/index.js');
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const { validateRegistration, validateLogin, handleValidationErrors } = require('./middleware/validation');
-	  
+const { Pool } = require('pg');
+const { v4: uuid } = require('uuid');
 
-app.set('port', process.env.PORT || 3000);
+// ===== Database =====
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
-// Add middleware for handling CORS requests
+// Helper function for DB queries
+const query = async (text, params) => {
+  try {
+    return await pool.query(text, params);
+  } catch (err) {
+    console.error("DB query error:", err);
+    throw err;
+  }
+};
+
+// ===== Middleware =====
+app.use(bodyParser.json());
+
 app.use(cors({
   origin: 'https://daintreestore.netlify.app',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 }));
 
-// Add middware for parsing request bodies here:
-app.use(bodyParser.json());
+// ===== Session =====
+app.set('trust proxy', 1); // for Railway/Heroku HTTPS
 
-// Trust the first proxy (required for secure cookies behind Railway/Heroku proxies)
-app.set('trust proxy', 1);
+app.use(session({
+  store: new pgSession({
+    pool,
+    tableName: 'session'
+  }),
+  name: 'connect.sid',
+  secret: process.env.SESSION_SECRET || 'secret_dts_snw_2025_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24, // 1 day
+    httpOnly: true,
+    secure: true,   // must be true for HTTPS
+    sameSite: 'none'
+  }
+}));
 
-// Add middleware for handing session storage (using memory store temporarily)
-app.use(
-  session({
-    store: new pgSession({
-      pool, 
-      tableName: 'session'
-    }),
-    name: 'connect.sid',
-    secret: process.env.SESSION_SECRET || "secret_dts_snw_2025_secret",
-    cookie: { 
-      maxAge: 1000 * 60 * 60 * 24, // one day expiry
-      httpOnly: true, 
-      secure: true,
-      sameSite: 'none'
-    }, 
-    saveUninitialized: false,
-    resave: false
-  })
-);
-
-// Add the middleware for addional security with http headers
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    crossOriginOpenerPolicy: false,
-    crossOriginEmbedderPolicy: false,
-  })
-);
-
-// Add passport middleware for logging in
+// ===== Passport =====
 app.use(passport.initialize());
-
-// Add the middleware to implement a session with passport
 app.use(passport.session());
 
-// For serializing the user
-passport.serializeUser((user, done) => {
-  done(null, user.email);
-});
+// Example user login helpers
+const getUserByEmail = async (email) => {
+  const res = await query(`SELECT * FROM users WHERE LOWER(email) = $1`, [email.toLowerCase()]);
+  return res.rows[0] || null;
+};
 
-// Deserializing user
-passport.deserializeUser(async (email, done) => {
-  try {
-    const user = await getUserByEmail(email);
-    done(null, user);
-  } catch (error) {
-    console.error(error);
-    done(error);
-  }
-});
-
-// Adding passport's local strategy
+// Local strategy
 passport.use(new LocalStrategy(
   { usernameField: 'email' },
-  async function (email, password, done) {
+  async (email, password, done) => {
     try {
       const user = await getUserByEmail(email);
-
-      if (!user) {
-        return done(null, false, { message: 'User not found' });
-      }
-
-      const passwordMatch = await bcrypt.compare(password, user.password);
-
-      if (!passwordMatch) {
-        return done(null, false, { message: 'Incorrect password' });
-      }
-
+      if (!user) return done(null, false, { message: 'User not found' });
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) return done(null, false, { message: 'Incorrect password' });
       return done(null, user);
-    } catch (error) {
-      console.error(error);
-      return done(error);
+    } catch (err) {
+      return done(err);
     }
   }
 ));
 
-app.get('/', (req, res) => {
-  res.send('Welcome to Daintree!');
-});
-
-// For getting current user
-app.get('/user', (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ msg: 'Unauthorized' });
-  }
-  res.json(req.user);
-});
-
-// For getting user by email
-app.get('/user/:email', async (req, res) => {
+passport.serializeUser((user, done) => done(null, user.email));
+passport.deserializeUser(async (email, done) => {
   try {
-    const user = await getUserByEmail(req.params.email);
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
-    const { password, ...safeUser } = user;
-    res.json(safeUser);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: 'Internal Server Error' });
+    const user = await getUserByEmail(email);
+    done(null, user);
+  } catch (err) {
+    done(err);
   }
 });
 
-// For logging out
-app.post("/logout", (req, res, next) => {
-  req.logout(err => {
-    if (err) return next(err);
-    req.session.destroy(err => {
-      if (err) return next(err);
-      res.clearCookie("connect.sid");
-      res.json({ msg: "Logged out successfully" });
-    });
-  });
-});
+// ===== Routes =====
+app.get('/', (req, res) => res.send('Welcome to Daintree!'));
 
-// For logging in
-app.post('/login', validateLogin, handleValidationErrors, (req, res, next) => {
+app.post('/login', (req, res, next) => {
   passport.authenticate('local', (err, user, info) => {
     if (err) return next(err);
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: info?.message || 'Invalid email or password'
-      });
-    }
+    if (!user) return res.status(401).json({ success: false, message: info.message });
 
-    req.logIn(user, (err) => {
+    req.logIn(user, err => {
       if (err) return next(err);
-
-      // Passport stores serialized user automatically in req.session.passport.user
       const { password, ...safeUser } = user;
-
-      return res.json({
-        success: true,
-        message: 'Login successful',
-        user: safeUser
-      });
+      res.json({ success: true, user: safeUser });
     });
   })(req, res, next);
 });
 
-// Signup endpoint (alias for register to match frontend)
-app.post('/signup', validateRegistration, handleValidationErrors, async (req, res, next) => {
-  try {
-    const newUser = await createUser(req.body);
-    if (!newUser) return res.status(500).json({ success: false, msg: "New user was not created" });
-
-    // Log in immediately after signup
-    req.logIn(newUser, (err) => {
-      if (err) return next(err);
-
-      const { password, ...safeUser } = newUser;
-      res.status(201).json({
-        success: true,
-        msg: "New user created",
-        user: safeUser
-      });
-    });
-  } catch (err) {
-    next(err);
-  }
+app.post('/logout', (req, res) => {
+  req.logout(err => {
+    if (err) return res.status(500).json({ msg: 'Logout failed' });
+    req.session.destroy(() => res.clearCookie('connect.sid').json({ msg: 'Logged out' }));
+  });
 });
 
-// Add middleware for the api and routes
-app.use('/', apiRouter);
-
-// 404 handler for undefined routes
-app.use(notFoundHandler);
-
-// Global error handler (must be last)
-app.use(errorHandler);
-
-// new way of doing port
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => console.log(`Server running on ${PORT}`));
-
-// old way of doing port
-app.listen(3000, () => {
-  console.log('Express server started at port 3000');
-});
+// ===== Server Start =====
+const PORT = process.env.PORT || 3000; // Railway sets this automatically
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
