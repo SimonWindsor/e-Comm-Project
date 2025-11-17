@@ -1,6 +1,5 @@
+require("dotenv").config();
 console.log("PORT var =", process.env.PORT);
-
-if (process.env.NODE_ENV !== "production") require("dotenv").config();
 
 const express = require('express');
 const app = express();
@@ -12,6 +11,8 @@ const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcryptjs');
 const { pool, getUserByEmail } = require("./db/index.js");
+const apiRouter = require("./routes/api");
+app.use(apiRouter);
 
 // ===== Middleware =====
 app.use(bodyParser.json());
