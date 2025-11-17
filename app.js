@@ -12,7 +12,6 @@ const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require('bcryptjs');
 const { pool, getUserByEmail } = require("./db/index.js");
 const apiRouter = require("./routes/api");
-app.use(apiRouter);
 
 // ===== Middleware =====
 app.use(bodyParser.json());
@@ -96,6 +95,9 @@ app.post('/logout', (req, res) => {
     );
   });
 });
+
+// ===== API Router =====
+app.use('/api', apiRouter);
 
 // ===== Server Start =====
 const PORT = process.env.PORT || 3000;
