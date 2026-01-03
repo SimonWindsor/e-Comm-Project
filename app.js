@@ -127,6 +127,25 @@ app.post("/logout", (req, res, next) => {
 // API routes AFTER middleware (items/cart/etc)
 app.use("/", apiRouter);
 
+// Error handler (must be after all routes)
+app.use((err, req, res, next) => {
+  console.error("Error:", err);
+  
+  // Ensure CORS headers are sent even on errors
+  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
+  res.header("Access-Control-Allow-Credentials", "true");
+  
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
 // Start server on Railway port
 const PORT = process.env.PORT || 3000;
 console.log("PORT var =", process.env.PORT);

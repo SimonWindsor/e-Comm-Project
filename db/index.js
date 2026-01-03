@@ -14,7 +14,8 @@ const query = async (text, params, callback) => {
   try {
     return await pool.query(text, params, callback);
   } catch (error) {
-    console.error(error);
+    console.error("Query error:", error);
+    throw error; // Re-throw so the calling function knows there was an error
   }
 };
 
