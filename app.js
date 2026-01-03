@@ -46,6 +46,7 @@ app.use(
       secure: true,
       sameSite: "none",
       // partitioned: true, // optional - may need this later
+    }
   })
 );
 
