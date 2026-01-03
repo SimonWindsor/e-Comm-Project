@@ -12,18 +12,41 @@ const { pool, getUserByEmail } = require("./db/index.js");
 
 const app = express();
 
+// Debug logging
+console.log("Initializing server...");
+console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
+console.log("FRONTEND_URL:", process.env.FRONTEND_URL);
+
 app.use(express.json());
 
 // CORS BEFORE routes
 const FRONTEND_URL = process.env.FRONTEND_URL || "https://daintreestore.netlify.app";
 
+console.log("FRONTEND_URL:", FRONTEND_URL);
+
 const corsOptions = {
-  origin: FRONTEND_URL,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      "https://daintreestore.netlify.app",
+      "http://localhost:3001",
+      "http://localhost:3000"
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn("CORS blocked origin:", origin);
+      callback(new Error("CORS not allowed"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  // Cookie is important for session auth
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
 };
+
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
@@ -129,11 +152,13 @@ app.use("/", apiRouter);
 
 // Error handler (must be after all routes)
 app.use((err, req, res, next) => {
-  console.error("Error:", err);
+  console.error("Error:", err.message);
   
-  // Ensure CORS headers are sent even on errors
-  res.header("Access-Control-Allow-Origin", FRONTEND_URL);
+  // Always send CORS headers
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Cookie");
   
   res.status(err.status || 500).json({
     success: false,

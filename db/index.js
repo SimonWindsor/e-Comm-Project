@@ -9,6 +9,12 @@ const pool = new Pool({
   }
 });
 
+pool.on('error', (err) => {
+  console.error('Pool error:', err);
+});
+
+console.log('Database pool initialized');
+
 // For making database queries. Use async/await upon calling outside this module
 const query = async (text, params, callback) => {
   try {
