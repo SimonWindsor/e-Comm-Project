@@ -8,7 +8,18 @@ const bcrypt = require("bcryptjs");
 
 // Routers and DB helpers
 const apiRouter = require("./routes/api");
-const { pool, getUserByEmail } = require("./db/index.js");
+
+let pool, getUserByEmail;
+
+try {
+  const dbModule = require("./db/index.js");
+  pool = dbModule.pool;
+  getUserByEmail = dbModule.getUserByEmail;
+  console.log("Database module loaded successfully");
+} catch (err) {
+  console.error("FATAL: Failed to load database module:", err);
+  process.exit(1);
+}
 
 const app = express();
 
