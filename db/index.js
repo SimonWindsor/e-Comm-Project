@@ -1,7 +1,14 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { uuid } = require('uuidv4');
- 
+
+console.log('db/index.js: Checking DATABASE_URL...');
+if (!process.env.DATABASE_URL) {
+  console.error('FATAL: DATABASE_URL environment variable not set!');
+  process.exit(1);
+}
+
+console.log('db/index.js: Initializing connection pool...');
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -11,6 +18,10 @@ const pool = new Pool({
 
 pool.on('error', (err) => {
   console.error('Pool error:', err);
+});
+
+pool.on('connect', () => {
+  console.log('Database pool connected');
 });
 
 console.log('Database pool initialized');
