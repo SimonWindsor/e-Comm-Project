@@ -73,29 +73,37 @@ app.options("*", cors(corsOptions));
 // Sessions BEFORE passport.session()
 app.set("trust proxy", 1); // Railway is behind a proxy
 
-app.use(
-  session({
-    store: new pgSession({
-      pool,
-      tableName: "session",
-    }),
-    name: "connect.sid",
-    secret: process.env.SESSION_SECRET || "dev_fallback_secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24, // 1 day
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      // partitioned: true, // optional - may need this later
-    }
-  })
-);
+console.log("Setting up session middleware...");
+try {
+  app.use(
+    session({
+      store: new pgSession({
+        pool,
+        tableName: "session",
+      }),
+      name: "connect.sid",
+      secret: process.env.SESSION_SECRET || "dev_fallback_secret",
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24, // 1 day
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      }
+    })
+  );
+  console.log("Session middleware setup complete");
+} catch (err) {
+  console.error("FATAL: Failed to setup session middleware:", err);
+  process.exit(1);
+}
 
 // Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
+console.log("Passport middleware setup complete");
 
 passport.serializeUser((user, done) => done(null, user.email));
 
