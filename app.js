@@ -129,12 +129,7 @@ app.get("/", (req, res) => res.send("Welcome to Daintree!"));
 
 // User endpoint (frontend calls this)
 app.get("/user", (req, res) => {
-  console.log("GET /user called");
-  if (!req.user) {
-    console.log("No user in session");
-    return res.status(401).json({ msg: "Unauthorized" });
-  }
-  console.log("User found:", req.user.email);
+  if (!req.user) return res.status(401).json({ msg: "Unauthorized" });
   res.json(req.user);
 });
 

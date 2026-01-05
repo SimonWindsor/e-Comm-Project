@@ -13,17 +13,13 @@ const isAuthenticated = (req, res, next) => {
 // Get all items with their main picture
 itemsRouter.get('/', async (req, res, next) => {
   try {
-    console.log('GET /items route called');
     const result = await query(`
       SELECT i.*, ip.file As picture FROM items i
       JOIN item_pictures ip
       ON i.id = ip.item_id
       WHERE ip.main_picture = TRUE`);
     
-    console.log('Query result rows:', result?.rows?.length);
-    
     if (!result || !result.rows) {
-      console.log('No result from query');
       return res.status(500).json({ error: 'Query returned no result' });
     }
     
@@ -34,7 +30,6 @@ itemsRouter.get('/', async (req, res, next) => {
     }
   } catch (error) {
     console.error('Error in GET /items:', error.message);
-    console.error('Error stack:', error.stack);
     next(error);
   }
 });
