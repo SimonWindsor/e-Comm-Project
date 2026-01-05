@@ -127,6 +127,24 @@ passport.use(
 // Basic route
 app.get("/", (req, res) => res.send("Welcome to Daintree!"));
 
+// Test database connection
+app.get("/test-db", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    res.json({ 
+      success: true, 
+      message: "Database connection works",
+      timestamp: result.rows[0]
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: "Database connection failed",
+      error: error.message 
+    });
+  }
+});
+
 // User endpoint (frontend calls this)
 app.get("/user", (req, res) => {
   if (!req.user) return res.status(401).json({ msg: "Unauthorized" });

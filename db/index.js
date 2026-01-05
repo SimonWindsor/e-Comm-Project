@@ -29,9 +29,12 @@ console.log('Database pool initialized');
 // For making database queries. Use async/await upon calling outside this module
 const query = async (text, params, callback) => {
   try {
-    return await pool.query(text, params, callback);
+    console.log("Executing query:", text.substring(0, 50) + "...");
+    const result = await pool.query(text, params, callback);
+    console.log("Query successful, rows:", result?.rows?.length);
+    return result;
   } catch (error) {
-    console.error("Query error:", error);
+    console.error("Query error:", error.message);
     throw error; // Re-throw so the calling function knows there was an error
   }
 };
