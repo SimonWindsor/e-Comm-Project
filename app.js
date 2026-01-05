@@ -155,23 +155,36 @@ app.get("/test-db", async (req, res) => {
 
 // User endpoint (frontend calls this)
 app.get("/user", (req, res) => {
+  console.log("GET /user, sessionID:", req.sessionID);
+  console.log("req.user:", req.user);
   if (!req.user) return res.status(401).json({ msg: "Unauthorized" });
   res.json(req.user);
 });
 
 // Login
 app.post("/login", (req, res, next) => {
+  console.log("Login attempt for email:", req.body.email);
   passport.authenticate("local", (err, user, info) => {
-    if (err) return next(err);
+    if (err) {
+      console.error("Passport error:", err);
+      return next(err);
+    }
     if (!user) {
+      console.log("Authentication failed:", info?.message);
       return res.status(401).json({
         success: false,
         message: info?.message || "Invalid email or password",
       });
     }
 
+    console.log("User authenticated:", user.email);
     req.logIn(user, (err2) => {
-      if (err2) return next(err2);
+      if (err2) {
+        console.error("Login error:", err2);
+        return next(err2);
+      }
+      console.log("Session created, sessionID:", req.sessionID);
+      console.log("User in session:", req.user?.email);
       const { password, ...safeUser } = user;
       return res.json({ success: true, user: safeUser });
     });
