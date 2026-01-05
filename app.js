@@ -1,3 +1,10 @@
+#!/usr/bin/env node
+
+// FIRST THING: Log that we're starting
+console.log("=".repeat(50));
+console.log("APP STARTING");
+console.log("=".repeat(50));
+
 const express = require("express");
 const cors = require("cors");
 const session = require("express-session");
@@ -5,6 +12,8 @@ const pgSession = require("connect-pg-simple")(session);
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcryptjs");
+
+console.log("All requires loaded successfully");
 
 // Routers and DB helpers
 const apiRouter = require("./routes/api");
