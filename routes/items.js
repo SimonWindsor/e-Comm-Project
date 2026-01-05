@@ -20,9 +20,10 @@ itemsRouter.get('/', async (req, res, next) => {
       ON i.id = ip.item_id
       WHERE ip.main_picture = TRUE`);
     
-    console.log('Query result:', result?.rows?.length);
+    console.log('Query result rows:', result?.rows?.length);
     
     if (!result || !result.rows) {
+      console.log('No result from query');
       return res.status(500).json({ error: 'Query returned no result' });
     }
     
@@ -32,7 +33,8 @@ itemsRouter.get('/', async (req, res, next) => {
       res.status(404).json({ message: 'No items found' });
     }
   } catch (error) {
-    console.error('Error in GET /items:', error);
+    console.error('Error in GET /items:', error.message);
+    console.error('Error stack:', error.stack);
     next(error);
   }
 });
