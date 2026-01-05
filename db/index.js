@@ -356,11 +356,11 @@ const getCart = async (userEmail) => {
 const upsertCart = async (userEmail, cartObject) => {
   try {
     const result = await query(
-      `INSERT INTO carts (user_email, cart)
+      `INSERT INTO carts (user_email, items)
         VALUES ($1, $2::jsonb)
        ON CONFLICT (user_email)
-       DO UPDATE SET cart = EXCLUDED.cart
-       RETURNING cart`,
+       DO UPDATE SET items = EXCLUDED.items
+       RETURNING items`,
       [userEmail, JSON.stringify(cartObject)]
     );
     return result.rows[0].cart;
