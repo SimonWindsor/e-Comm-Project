@@ -339,7 +339,7 @@ const deleteReview = async (reviewId) => {
 const getCart = async (userEmail) => {
   try {
     const result = await query(
-      `SELECT cart FROM carts WHERE user_email = $1`,
+      `SELECT items FROM carts WHERE user_email = $1`,
       [userEmail]
     );
     if (result.rows.length === 0) {
