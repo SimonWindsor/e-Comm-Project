@@ -345,7 +345,7 @@ const getCart = async (userEmail) => {
     if (result.rows.length === 0) {
       return false;
     } else {
-      return result.rows[0].cart;
+      return result.rows[0].items;
     }
   } catch (error) {
     console.error(error);
@@ -363,7 +363,7 @@ const upsertCart = async (userEmail, cartObject) => {
        RETURNING items`,
       [userEmail, JSON.stringify(cartObject)]
     );
-    return result.rows[0].cart;
+    return result.rows[0].items;
   } catch (error) {
     console.error(error);
     throw new Error('Error upserting cart');
