@@ -1,5 +1,5 @@
 const itemsRouter = require('express').Router();
-const {query, getItemById, getAllItemPictures, getItemsByCategory, getItemsFromSearch} = require('../db/index.js');
+const { getAllItems, getAllCategories, getItemById, getAllItemPictures, getItemsByCategory, getItemsFromSearch } = require('../db/index.js');
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
