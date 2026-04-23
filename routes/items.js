@@ -10,26 +10,14 @@ const isAuthenticated = (req, res, next) => {
   }
 };
 
-// Get all items with their main picture
+// Get all items
 itemsRouter.get('/', async (req, res, next) => {
   try {
-    const result = await query(`
-      SELECT i.*, ip.file As picture FROM items i
-      JOIN item_pictures ip
-      ON i.id = ip.item_id
-      WHERE ip.main_picture = TRUE`);
-    
-    if (!result || !result.rows) {
-      return res.status(500).json({ error: 'Query returned no result' });
-    }
-    
-    if (result.rows.length > 0) {
-      res.status(200).json(result.rows);
-    } else {
-      res.status(404).json({ message: 'No items found' });
-    }
+    const items = await getAllItems();
+    items.length > 0
+      ? res.status(200).json(items)
+      : res.status(404).json({ message: 'No items found' });
   } catch (error) {
-    console.error('Error in GET /items:', error.message);
     next(error);
   }
 });
@@ -68,14 +56,11 @@ itemsRouter.get('/pictures/:id', async (req, res, next) => {
 // Get all categories
 itemsRouter.get('/allcategories', async (req, res, next) => {
   try {
-    const result = await query(`SELECT category FROM items GROUP BY category`);
-    if (result.rows.length > 0) {
-      res.status(200).send(result.rows);
-    } else {
-      res.status(404).send('404 Category not found!');
-    }
+    const categories = await getAllCategories();
+    categories.length > 0
+      ? res.status(200).json(categories)
+      : res.status(404).json({ message: 'No categories found' });
   } catch (error) {
-    console.error(error);
     next(error);
   }
 });

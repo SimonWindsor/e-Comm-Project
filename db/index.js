@@ -1,6 +1,7 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { uuid } = require('uuidv4');
+const { get } = require('../app');
 
 console.log('db/index.js: Checking DATABASE_URL...');
 if (!process.env.DATABASE_URL) {
@@ -183,6 +184,21 @@ const getItemById = async (id) => {
   }
 };
 
+// Gets all items with their main picture
+const getAllItems = async () => {
+  try {
+    const result = await query(
+      `SELECT i.*, ip.file AS picture FROM items i
+       JOIN item_pictures ip ON i.id = ip.item_id
+       WHERE ip.main_picture = TRUE`
+    );
+    return result.rows;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error retrieving all items');
+  }
+};
+
 // Get all item pictures or return a false value. Use async/await upon calling
 // Multiple pictures is likely to be out of scope for this project
 const getAllItemPictures = async (id) => {
@@ -204,6 +220,19 @@ const getAllItemPictures = async (id) => {
     throw new Error('Error item pictures by ID');
   }
 }
+
+// Gets all item categories
+const getAllCategories = async () => {
+  try {
+    const result = await query(
+      `SELECT category FROM items GROUP BY category`
+    );
+    return result.rows;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error retrieving categories');
+  }
+};
 
 // Returns an array of objects or a false value. Use async/await upon calling
 const getItemsByCategory = async (category) => {
@@ -257,22 +286,35 @@ const getItemsFromSearch = async (searchTerms) => {
   }
 };
 
-// Returns either an review object or a false value. Use async/await upon calling
-const getReview = async (reviewId) => {
+// Returns all reviews for an item with reviewer's first name
+const getReviewsByItemId = async (itemId) => {
   try {
-    const result = await query(`
-      SELECT * FROM reviews WHERE id = $1`,
-      [reviewId]
+    const result = await query(
+      `SELECT r.*, u.first_name FROM reviews r
+       JOIN users u ON r.user_email = u.email
+       WHERE r.item_id = $1
+       ORDER BY r.timestamp DESC`,
+      [itemId]
     );
-
-    if (result.rows.length === 0) {
-      return false;
-    } else {
-      return result.rows[0];
-    }
+    return result.rows;
   } catch (error) {
     console.error(error);
-    throw new Error('Error retrieving review by ID');
+    throw new Error('Error retrieving reviews by item ID');
+  }
+};
+
+// Returns all reviews by a user
+const getReviewsByUser = async (userEmail) => {
+  try {
+    const result = await query(
+      `SELECT * FROM reviews WHERE user_email = $1
+       ORDER BY timestamp DESC`,
+      [userEmail]
+    );
+    return result.rows;
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error retrieving reviews by user email');
   }
 };
 
@@ -434,10 +476,13 @@ module.exports = {
   getUserByEmail,
   createUser,
   getItemById,
+  getAllItems,
   getAllItemPictures,
   getItemsByCategory,
+  getAllCategories,
   getItemsFromSearch,
-  getReview,
+  getReviewsByItemId,
+  getReviewsByUser,
   createReview,
   updateReview,
   deleteReview,
