@@ -18,12 +18,13 @@ console.log("All requires loaded successfully");
 // Routers and DB helpers
 const apiRouter = require("./routes/api");
 
-let pool, getUserByEmail;
+let pool, getUserByEmail, createUser;
 
 try {
   const dbModule = require("./db/index.js");
   pool = dbModule.pool;
   getUserByEmail = dbModule.getUserByEmail;
+  createUser = dbModule.createUser;
   console.log("Database module loaded successfully");
 } catch (err) {
   console.error("FATAL: Failed to load database module:", err);
@@ -132,7 +133,7 @@ passport.use(
   })
 );
 
-// Basic route
+// Basic route to check server is running
 app.get("/", (req, res) => res.send("Welcome to Daintree!"));
 
 // Test database connection
@@ -204,6 +205,39 @@ app.post("/logout", (req, res, next) => {
       res.json({ msg: "Logged out successfully" });
     });
   });
+});
+
+// Signup
+app.post("/signup", async (req, res, next) => {
+  try {
+    const { email, firstName, lastName, phoneNumber, password } = req.body;
+    
+    // createUser handles hashing and duplicate check
+    const newUser = await createUser({ 
+      email, 
+      firstName, 
+      lastName, 
+      phoneNumber, 
+      password
+    });
+
+    // Log them in automatically after signup
+    req.logIn(newUser, (err) => {
+      if (err) return next(err);
+      const { password, ...safeUser } = newUser;
+      return res.status(201).json({ success: true, user: safeUser });
+    });
+
+  } catch (error) {
+    console.error("Signup error:", error);
+    if (error.message === 'Error creating user') {
+      return res.status(409).json({ 
+        success: false, 
+        message: 'An account with that email already exists' 
+      });
+    }
+    next(error);
+  }
 });
 
 // API routes AFTER middleware (items/cart/etc)

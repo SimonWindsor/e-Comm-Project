@@ -70,7 +70,6 @@ const createUser = async (userBodyObject) => {
       firstName, 
       lastName, 
       phoneNumber, 
-      address, // this will be an object
       password
     } = userBodyObject;
     // Check if user already exists
@@ -79,20 +78,14 @@ const createUser = async (userBodyObject) => {
     if (user) {
       throw new Error('User already exists');
     } else {
-      // Obtain address id and create if it doesn't exist
-      let addressId = await findAddressId(address); // address is an object
-
-      if(!addressId) {
-        addressId = await createAddress(address); // address is an object
-      }
-
       const hashedPassword = await bcrypt.hash(password, 10);
 
       const queryText = `
         INSERT INTO users (email, first_name, last_name, phone_number, address_id, password)
         VALUES ($1, $2, $3, $4, $5, $6) RETURNING *
       `;
-      const insertParams = [email, firstName, lastName, phoneNumber, addressId, hashedPassword];
+      // Address is going to be null on user creation. It will be obtained on checkout
+      const insertParams = [email, firstName, lastName, phoneNumber, null, hashedPassword];
       const newUser = await query(
         queryText,
         insertParams
