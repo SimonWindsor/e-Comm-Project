@@ -307,8 +307,13 @@ const getReviewsByItemId = async (itemId) => {
 const getReviewsByUser = async (userEmail) => {
   try {
     const result = await query(
-      `SELECT * FROM reviews WHERE user_email = $1
-       ORDER BY timestamp DESC`,
+      `SELECT r.*, i.name AS item_name, ip.file AS item_picture
+      FROM reviews r
+      JOIN items i ON r.item_id = i.id
+      Join item_pictures ip ON i.id = ip.item_id
+      WHERE r.user_email = $1
+      AND ip.main_picture = TRUE  
+      ORDER BY timestamp DESC`,
       [userEmail]
     );
     return result.rows;
